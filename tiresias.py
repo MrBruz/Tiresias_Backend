@@ -22,6 +22,7 @@ messagestosend = {}
 messagesreceived = {}
 rqstamnt = 100
 nodes = {}
+nodeIps = {}
 threads = []
 maxNodes = 256
 maxNodes2 = maxNodes / 4
@@ -211,10 +212,14 @@ def remove_prefix(text, prefix):
 
 def locateNode(nodeId):
     global numNodes
+    global nodeIps
     global maxNodesSvr
     nodeDepth = math.floor(int(numNodes) / maxNodesSvr)
-    availableNodes = [x for x in nodes.keys() if x.startswith(nodeId[:nodeDepth])] 
-    return availableNodes.pop(random.randint(0, len(availableNodes) - 1))
+    availableNodes = [x for x in list(nodeIps.keys()) if x.startswith(nodeId[:nodeDepth])] 
+    rqstmsg = '§DO-YOU-KNOW§' + nodeId
+    addToMsgsSend(nodeIps[availableNodes.pop(random.randint(0, len(availableNodes) - 1))],rqstmsg.encode())
+
+
 
 ### Server class
 # Contains the server socket listener/writer
@@ -278,11 +283,14 @@ class Server():
                                                     ip = dataDecoded.split('§')[2]
                                                     id = dataDecoded.split('§')[3]
                                                     print('Node, ' + id + ' said hello from ' + ip)
+                                                    nodeIps[id] = ip
                                                     msg = '§HELLO-SERVER§' + str(len(nodes) + '§' + maxNodes)
                                                     addToMsgsSend(ip,msg.encode())
                                             elif dataDecoded.startswith('§HELLO-SERVER§') and dataDecoded.count('§') == 2:
                                                     numNodes = remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[0]
                                                     maxNodesSvr = remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[2]
+                                            elif dataDecoded.startswith('§DO-YOU-KNOW§') and dataDecoded.count('§') == 2:
+                                                    
                                             elif dataDecoded.startswith('§REQUEST-CLUSTER-NODES§') and dataDecoded.count('§') == 3:
                                                     print(addr[0] + ' is requesting sacrfices to connect to.')
                                                     clusterDepth = math.floor(len(nodes) / maxNodes)
