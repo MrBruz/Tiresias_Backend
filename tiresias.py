@@ -210,7 +210,11 @@ def remove_prefix(text, prefix):
     return text
 
 def locateNode(nodeId):
-    with_s = [x for x in test_list if x.startswith(start_letter)] 
+    global numNodes
+    global maxNodesSvr
+    nodeDepth = math.floor(int(numNodes) / maxNodesSvr)
+    availableNodes = [x for x in nodes.keys() if x.startswith(nodeId[:nodeDepth])] 
+    return availableNodes.pop(random.randint(0, len(availableNodes) - 1))
 
 ### Server class
 # Contains the server socket listener/writer
@@ -241,6 +245,8 @@ class Server():
                 global messagestosend
                 global nodes
                 global maxNodes
+                global maxNodesSvr
+                global numNodes
                 print("(ServerThread): Received connection from: " + str(addr))
                 conn.setblocking(0)
                 randomwait=random.randint(1,serverRandomWait)
@@ -272,8 +278,11 @@ class Server():
                                                     ip = dataDecoded.split('§')[2]
                                                     id = dataDecoded.split('§')[3]
                                                     print('Node, ' + id + ' said hello from ' + ip)
-                                                    msg = '§HELLO-SERVER§' + len()
+                                                    msg = '§HELLO-SERVER§' + str(len(nodes) + '§' + maxNodes)
                                                     addToMsgsSend(ip,msg.encode())
+                                            elif dataDecoded.startswith('§HELLO-SERVER§') and dataDecoded.count('§') == 2:
+                                                    numNodes = remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[0]
+                                                    maxNodesSvr = remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[2]
                                             elif dataDecoded.startswith('§REQUEST-CLUSTER-NODES§') and dataDecoded.count('§') == 3:
                                                     print(addr[0] + ' is requesting sacrfices to connect to.')
                                                     clusterDepth = math.floor(len(nodes) / maxNodes)
