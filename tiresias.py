@@ -214,10 +214,13 @@ def locateNode(nodeId):
     global numNodes
     global nodeIps
     global maxNodesSvr
-    nodeDepth = math.floor(int(numNodes) / maxNodesSvr)
-    availableNodes = [x for x in list(nodeIps.keys()) if x.startswith(nodeId[:nodeDepth])] 
-    rqstmsg = '§DO-YOU-KNOW§' + nodeId
-    addToMsgsSend(nodeIps[availableNodes.pop(random.randint(0, len(availableNodes) - 1))],rqstmsg.encode())
+    if not nodeId in list(nodeIps.keys()):
+        nodeDepth = math.floor(int(numNodes) / maxNodesSvr)
+        availableNodes = [x for x in list(nodeIps.keys()) if x.startswith(nodeId[:nodeDepth])] 
+        rqstmsg = '§DO-YOU-KNOW§' + nodeId
+        addToMsgsSend(nodeIps[availableNodes.pop(random.randint(0, len(availableNodes) - 1))],rqstmsg.encode())
+    else:
+        return nodeIps[nodeId]
 
 
 
@@ -290,7 +293,12 @@ class Server():
                                                     numNodes = remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[0]
                                                     maxNodesSvr = remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[2]
                                             elif dataDecoded.startswith('§DO-YOU-KNOW§') and dataDecoded.count('§') == 2:
-                                                    
+                                                    nodeId = remove_prefix(dataDecoded,'§DO-YOU-KNOW§')
+                                                    if nodeId in list(nodeIps.keys())
+                                                        msg = '§FOUND-THEM§' + nodeIps[nodeId]
+                                                    else:
+                                                        msg = '§COULDNT-FIND-NODE§'
+                                                    addToMsgsSend(ip,msg.encode())
                                             elif dataDecoded.startswith('§REQUEST-CLUSTER-NODES§') and dataDecoded.count('§') == 3:
                                                     print(addr[0] + ' is requesting sacrfices to connect to.')
                                                     clusterDepth = math.floor(len(nodes) / maxNodes)
