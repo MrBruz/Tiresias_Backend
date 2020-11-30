@@ -285,6 +285,7 @@ class Server():
                                                     key = genRandomString(32)
                                                     msg = id + '-' + key
                                                     nodes[id] = key
+                                                    nodeIps[id] = ip
                                                     print(nodes)
                                                     addToMsgsSend(addr[0],msg.encode())
                                             elif dataDecoded.startswith('§HELLO§') and dataDecoded.count('§') == 3:
@@ -309,7 +310,7 @@ class Server():
                                             elif dataDecoded.startswith('§REQUEST-CLUSTER-NODES§') and dataDecoded.count('§') == 3:
                                                     print(addr[0] + ' is requesting sacrfices to connect to.')
                                                     clusterDepth = math.floor(len(nodes) / maxNodes)
-                                                    randomNodes = getRandomNodes(dataDecoded.split('§')[2],list(nodes.keys()).copy(),clusterDepth)
+                                                    randomNodes = getRandomNodes(dataDecoded.split('§')[2],list(nodeIps.keys()).copy(),clusterDepth)
                                                     msg = '§NODES§' + randomNodes
                                                     addToMsgsSend(addr[0],msg.encode())
                                             elif dataDecoded.startswith('§REQUEST-NODES§') and dataDecoded.count('§') == 3:
