@@ -214,11 +214,15 @@ def locateNode(nodeId):
     global numNodes
     global nodeIps
     global maxNodesSvr
+    global foundNodes
     if not nodeId in list(nodeIps.keys()):
         nodeDepth = math.floor(int(numNodes) / maxNodesSvr)
         availableNodes = [x for x in list(nodeIps.keys()) if x.startswith(nodeId[:nodeDepth])] 
         rqstmsg = '§DO-YOU-KNOW§' + nodeId
         addToMsgsSend(nodeIps[availableNodes.pop(random.randint(0, len(availableNodes) - 1))],rqstmsg.encode())
+        while not foundNodes.get(nodeId)
+            time.sleep(1)
+        return foundNodes.pop(nodeId)
     else:
         return nodeIps[nodeId]
 
@@ -255,6 +259,7 @@ class Server():
                 global maxNodes
                 global maxNodesSvr
                 global numNodes
+                global foundNodes
                 print("(ServerThread): Received connection from: " + str(addr))
                 conn.setblocking(0)
                 randomwait=random.randint(1,serverRandomWait)
@@ -295,10 +300,12 @@ class Server():
                                             elif dataDecoded.startswith('§DO-YOU-KNOW§') and dataDecoded.count('§') == 2:
                                                     nodeId = remove_prefix(dataDecoded,'§DO-YOU-KNOW§')
                                                     if nodeId in list(nodeIps.keys())
-                                                        msg = '§FOUND-THEM§' + nodeIps[nodeId]
+                                                        msg = '§FOUND-THEM§' + nodeIps[nodeId] + '§' + nodeId
                                                     else:
                                                         msg = '§COULDNT-FIND-NODE§'
                                                     addToMsgsSend(ip,msg.encode())
+                                            elif dataDecoded.startswith('§FOUND-THEM§') and dataDecoded.count('§') == 3:
+                                                    foundNodes[remove_prefix(dataDecoded,'§FOUND-THEM§').split('§')[1]] = remove_prefix(dataDecoded,'§FOUND-THEM§').split('§')[0]
                                             elif dataDecoded.startswith('§REQUEST-CLUSTER-NODES§') and dataDecoded.count('§') == 3:
                                                     print(addr[0] + ' is requesting sacrfices to connect to.')
                                                     clusterDepth = math.floor(len(nodes) / maxNodes)
@@ -323,14 +330,14 @@ class Server():
                                                     addToMsgsRecv(addr[0],msg)
                                             else:
                                                     print("<RECEIVED> " + dataDecoded)
-                                            messages.append(data)
+                                            messages.append(dataDecoded)
 
 
                         except:
                                 self.servermsgs.remove(msg)
                                 conn.close()
                                 print("exiting: msgs %d" % len(self.servermsgs))
-                                raise
+                                raise   
 
         ## Server main thread
         def serverMain(self):
