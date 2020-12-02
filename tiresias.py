@@ -150,6 +150,7 @@ def sanitize(string):
 def getRandomNodes(id,nodesInternal,nodeDepth):
         global maxNodes
         global maxNodes2
+        global nodeIps
         filteredNodes = []
         otherNodes = []
         filterId = id[:nodeDepth]
@@ -169,8 +170,9 @@ def getRandomNodes(id,nodesInternal,nodeDepth):
                 counter = counter + 1
         else:
             for x in range(maxNodes2):
+                grabNode = filteredNodes.pop(random.randint(0, len(filteredNodes) - 1))
                 if x == 0:
-                    returnNodes = returnNodes + filteredNodes.pop(random.randint(0, len(filteredNodes) - 1))
+                    returnNodes = returnNodes + grabNode + '§' + nodeIps[grabNode]
                 else:
                     returnNodes = returnNodes + '-' + filteredNodes.pop(random.randint(0, len(filteredNodes) - 1))
         returnNodes2 = ""
@@ -184,10 +186,11 @@ def getRandomNodes(id,nodesInternal,nodeDepth):
                 counter = counter + 1
         else:
             for x in range(maxNodes):
+                grabNode2 = otherNodes.pop(random.randint(0, len(otherNodes) - 1))
                 if x == 0:
-                    returnNodes2 = returnNodes2 + otherNodes.pop(random.randint(0, len(otherNodes) - 1))
+                    returnNodes2 = returnNodes2 + grabNode + '§' + nodeIps[grabNode]
                 else:
-                    returnNodes2 = returnNodes2 + '-' + otherNodes.pop(random.randint(0, len(otherNodes) - 1))
+                    returnNodes2 = returnNodes2 + '-' + grabNode + '§' + nodeIps[grabNode]
         return returnNodes + '§' + returnNodes2
 
 ## print function
@@ -217,7 +220,7 @@ def locateNode(nodeId):
     global foundNodes
     if not nodeId in list(nodeIps.keys()):
         nodeDepth = math.floor(int(numNodes) / maxNodesSvr)
-        availableNodes = [x for x in list(nodeIps.keys()) if x.startswith(nodeId[:nodeDepth])] 
+        availableNodes = [x for x in list(nodeIps.keys()) if x.startswith(nodeId[:nodeDepth])]
         rqstmsg = '§DO-YOU-KNOW§' + nodeId
         addToMsgsSend(nodeIps[availableNodes.pop(random.randint(0, len(availableNodes) - 1))],rqstmsg.encode())
         while not foundNodes.get(nodeId)
@@ -338,7 +341,7 @@ class Server():
                                 self.servermsgs.remove(msg)
                                 conn.close()
                                 print("exiting: msgs %d" % len(self.servermsgs))
-                                raise   
+                                raise
 
         ## Server main thread
         def serverMain(self):
