@@ -191,7 +191,7 @@ def getRandomNodes(id,nodesInternal,nodeDepth):
                     returnNodes2 = returnNodes2 + grabNode + '§' + nodeIps[grabNode]
                 else:
                     returnNodes2 = returnNodes2 + '-' + grabNode + '§' + nodeIps[grabNode]
-        return returnNodes + '§' + returnNodes2
+        return returnNodes + '§§' + returnNodes2
 
 ## print function
 
@@ -325,9 +325,10 @@ class Server():
                                                     print("We have received an idenity from " + addr[0] + " id:" + dataDecoded.split('-')[0] + " key:" + dataDecoded.split('-')[1])
                                             elif dataDecoded.startswith('§NODES§') and dataDecoded.count('§') == 2:
                                                     processed = remove_prefix(dataDecoded,'§NODES§')
-                                                    receivedNodes1 = processed.split('§')[0].split('-')
-                                                    receivedNodes2 = processed.split('§')[1].split('-')
-                                                    print("We have received " + str(len(receivedNodes1) + len(receivedNodes2)) + " nodes from " + addr[0])
+                                                    receivedNodes = processed.split('§§')[0].split('-') + processed.split('§§')[1].split('-')
+                                                    for x in receivedNodes: #X Gon' Give It to Ya
+                                                        nodeIps[x.split('§')[0]] = x.split('§')[1]
+                                                    print("We have received " + str(len(receivedNodes) + " nodes from " + addr[0])
                                             elif dataDecoded.startswith('§MSG§'):
                                                     msg = remove_prefix(dataDecoded,'§MSG§')
                                                     print(addr[0],msg)
