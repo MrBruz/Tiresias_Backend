@@ -223,7 +223,7 @@ def locateNode(nodeId):
         availableNodes = [x for x in list(nodeIps.keys()) if x.startswith(nodeId[:nodeDepth])]
         rqstmsg = '§DO-YOU-KNOW§' + nodeId
         addToMsgsSend(nodeIps[availableNodes.pop(random.randint(0, len(availableNodes) - 1))],rqstmsg.encode())
-        while not foundNodes.get(nodeId)
+        while not foundNodes.get(nodeId):
             time.sleep(1)
         return foundNodes.pop(nodeId)
     else:
@@ -303,7 +303,7 @@ class Server():
                                                     maxNodesSvr = remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[2]
                                             elif dataDecoded.startswith('§DO-YOU-KNOW§') and dataDecoded.count('§') == 2:
                                                     nodeId = remove_prefix(dataDecoded,'§DO-YOU-KNOW§')
-                                                    if nodeId in list(nodeIps.keys())
+                                                    if nodeId in list(nodeIps.keys()):
                                                         msg = '§FOUND-THEM§' + nodeIps[nodeId] + '§' + nodeId
                                                     else:
                                                         msg = '§COULDNT-FIND-NODE§'
@@ -328,7 +328,7 @@ class Server():
                                                     receivedNodes = processed.split('§§')[0].split('-') + processed.split('§§')[1].split('-')
                                                     for x in receivedNodes: #X Gon' Give It to Ya
                                                         nodeIps[x.split('§')[0]] = x.split('§')[1]
-                                                    print("We have received " + str(len(receivedNodes) + " nodes from " + addr[0])
+                                                    print("We have received " + str(len(receivedNodes)) + " nodes from " + addr[0])
                                             elif dataDecoded.startswith('§MSG§'):
                                                     msg = remove_prefix(dataDecoded,'§MSG§')
                                                     print(addr[0],msg)
