@@ -475,10 +475,6 @@ def AutoGenClientThreads():
 if len(sys.argv) > 1:
     if sys.argv[1] == "-s":
         type = "SERVER"
-    elif sys.argv[1] == "-rn":
-        type = "CLIENT-REQUEST-NODES"
-    elif sys.argv[1] == "-c":
-        type = "CLIENT"
     else:
         type = "OTHER"
 else:
@@ -499,12 +495,13 @@ thread.start()
 thread = Thread(target = Server().serverMain)
 thread.start()
 
-if type == "CLIENT-REQUEST-NODES": #Client mode, although it automatically requests 100 nodes from the bootstrap server.
+if type == "OTHER": #Client mode, although it automatically requests 100 nodes from the bootstrap server.
+    rqstmsg = '§HELLO§' + onionaddr + '§adjakdkwkskwodod'
+    addToMsgsSend(inputaddr,rqstmsg.encode())
+    rqstmsg = '§REQUEST-IDENTITY§'
+    addToMsgsSend(inputaddr,rqstmsg.encode())
     rqstmsg = '§REQUEST-CLUSTER-NODES§adjakdkwkskwodod§'
     addToMsgsSend(inputaddr,rqstmsg.encode())
 elif type == "CLIENT": #Client mode, although this tests the message send function. Use this paired with another pc running the server mode to test send/receiving msgs.
     rqstmsg = '§MSG§' + 'test message 123...'
-    addToMsgsSend(inputaddr,rqstmsg.encode())
-elif type != "SERVER": #This is a hacky way of saying we want to request an identity from the server, ill fix this up latr. Yeah so this asks for a id/key from trusted bootstrap server (key for auth)
-    rqstmsg = '§REQUEST-IDENTITY§'
     addToMsgsSend(inputaddr,rqstmsg.encode())
