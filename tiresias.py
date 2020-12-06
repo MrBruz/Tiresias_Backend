@@ -296,8 +296,12 @@ class Server():
                                                     id = dataDecoded.split('§')[3]
                                                     print('Node, ' + id + ' said hello from ' + ip)
                                                     nodeIps[id] = ip
+                                            elif dataDecoded.startswith('§GIVE-SVR-VARS§') and dataDecoded.count('§') == 2:
                                                     msg = '§HELLO-SERVER§' + str(len(nodes) + '§' + maxNodes)
                                                     addToMsgsSend(ip,msg.encode())
+                                            elif dataDecoded.startswith('§HELLO-IP§') and dataDecoded.count('§') == 3:
+                                                    ip = dataDecoded.split('§')[2]
+                                                    print('A node said hello from ' + ip)
                                             elif dataDecoded.startswith('§HELLO-SERVER§') and dataDecoded.count('§') == 2:
                                                     numNodes = remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[0]
                                                     maxNodesSvr = remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[2]
