@@ -466,7 +466,7 @@ def AutoGenClientThreads():
     global messagestosend
     while True:
         for item in list(messagestosend):
-            if not item in threads:
+            if not item in threads and len(messagestosend.get(item)) > 0:
                 threads.append(item)
                 thread = Thread(target = Client,args=[item])
                 thread.start()
