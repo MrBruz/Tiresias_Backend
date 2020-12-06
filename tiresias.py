@@ -435,7 +435,8 @@ def clientConnectionThread(ServerOnionURL):
                                 counter = counter + 1
                         print("Timeout (60 seconds since last packet sent.), on connection to " + ServerOnionURL)
                         threads.remove(ServerOnionURL)
-                        s.close()
+                        break
+        s.close()
 
 
 ## Client main procedure
