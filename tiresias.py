@@ -299,14 +299,14 @@ class Server():
                                                     print('[I] ' + 'Node, ' + id + ' said hello from ' + ip)
                                                     nodeIps[id] = ip
                                             elif dataDecoded.startswith('§GIVE-SVR-VARS§') and dataDecoded.count('§') == 2:
-                                                    msg = '§HELLO-SERVER§' + str(len(nodes) + '§' + maxNodes)
+                                                    msg = '§HELLO-SERVER§' + str(len(nodes) + '§' + str(maxNodes))
                                                     addToMsgsSend(ip,msg.encode())
                                             elif dataDecoded.startswith('§HELLO-IP§') and dataDecoded.count('§') == 2:
                                                     ip = dataDecoded.split('§')[2]
                                                     print('[I] ' + 'A node said hello from ' + ip)
                                             elif dataDecoded.startswith('§HELLO-SERVER§') and dataDecoded.count('§') == 2:
-                                                    numNodes = remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[0]
-                                                    maxNodesSvr = remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[2]
+                                                    numNodes = int(remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[0])
+                                                    maxNodesSvr = int(remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[2])
                                             elif dataDecoded.startswith('§DO-YOU-KNOW§') and dataDecoded.count('§') == 2:
                                                     nodeId = remove_prefix(dataDecoded,'§DO-YOU-KNOW§')
                                                     if nodeId in list(nodeIps.keys()):
@@ -491,7 +491,8 @@ else:
 print("[I] Running in " + type + " mode")
 
 if type == "CLIENT" or type == "CLIENT-REQUEST-NODES" or type == "OTHER":
-    inputaddr = input("Enter ip: ")
+    inputaddr = 'fe5lmgoeqeqwdw5qsupr5t6ezxiydpfotrcqd5s4qozpl6iucjuo5qyd.onion'
+    #inputaddr = input("Enter ip: ")
     if inputaddr == '':
         type = "NONE"
 
@@ -516,6 +517,11 @@ if type == "OTHER": #Client mode, although it automatically requests 100 nodes f
         time.sleep(0.5)
     rqstmsg = '§REQUEST-CLUSTER-NODES§' + ourId + '§'
     addToMsgsSend(inputaddr,rqstmsg.encode())
+    time.sleep(10)
+    rqstmsg = '§GIVE-SVR-VARS§'
+    addToMsgsSend(inputaddr,rqstmsg.encode())
+    gimmeIp = input('What node IP do you wanna find? ')
+    print('Here is the IP Boss', locateNode(gimmeIp))
 elif type == "CLIENT": #Client mode, although this tests the message send function. Use this paired with another pc running the server mode to test send/receiving msgs.
     rqstmsg = '§MSG§' + 'test message 123...'
     addToMsgsSend(inputaddr,rqstmsg.encode())
