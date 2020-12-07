@@ -16,6 +16,8 @@ import threading
 import string
 import hashlib
 import datetime
+import os.path
+from os import path
 
 messages = []
 messagestosend = {}
@@ -24,9 +26,10 @@ rqstamnt = 100
 nodes = {}
 nodeIps = {}
 threads = []
-maxNodes = 2
-maxNodes2 = 1
+maxNodes = 256
+maxNodes2 = maxNodes / 4
 ourId = ''
+ourKey = ''
 #from tkinter import font
 #from tkinter import ttk
 
@@ -156,6 +159,7 @@ def getRandomNodes(id,nodesInternal,nodeDepth):
                 filteredNodes.append(nodes)
             else:
                 otherNodes.append(nodes)
+        print(filteredNodes,otherNodes)
         returnNodes = ""
         if not len(filteredNodes) > maxNodes2:
             counter = 1
@@ -290,8 +294,9 @@ class Server():
                                                     nodeIps[id] = ip
                                                     addToMsgsSend(ip,msg.encode())
                                             elif dataDecoded.startswith('§HELLO§') and dataDecoded.count('§') == 3:
-                                                    ip = dataDecoded.split('§')[2]
-                                                    id = dataDecoded.split('§')[3]
+                                                    processedData = remove_prefix(dataDecoded,'§HELLO§')
+                                                    ip = processedData.split('§')[0]
+                                                    id = processedData.split('§')[1]
                                                     print('[I] ' + 'Node, ' + id + ' said hello from ' + ip)
                                                     nodeIps[id] = ip
                                             elif dataDecoded.startswith('§GIVE-SVR-VARS§') and dataDecoded.count('§') == 2:
@@ -487,7 +492,7 @@ else:
 print("[I] Running in " + type + " mode")
 
 if type == "CLIENT" or type == "CLIENT-REQUEST-NODES" or type == "OTHER":
-    inputaddr = 'azjruitmoumcrngokb6teooykhmeqhw4hdufr5afsi2ey5hubvq4s4id.onion'
+    inputaddr = 'ikiooxexu7emqnrwfce5z57mc2lpavo2ar6ibikoz4lftk6426lg22ad.onion'
     #inputaddr = input("Enter ip: ")
     if inputaddr == '':
         type = "NONE"
@@ -502,15 +507,30 @@ thread.start()
 thread = Thread(target = Server().serverMain)
 thread.start()
 
+while onionaddr == "":
+    time.sleep(0.5)
+
+if type != "SERVER":
+    if path.exists('ts_pf.txt'):
+        f = open("ts_pf.txt", "r")
+        pfRead = f.read().strip()
+        f.close()
+        ourId = pfRead.split('§')[0]
+        ourKey = pfRead.split('§')[1]
+        rqstmsg = '§HELLO§' + onionaddr + ourId
+        addToMsgsSend(inputaddr,rqstmsg.encode())
+    else:
+        rqstmsg = '§HELLO-IP§' + onionaddr
+        addToMsgsSend(inputaddr,rqstmsg.encode())
+        rqstmsg = '§REQUEST-IDENTITY§'
+        addToMsgsSend(inputaddr,rqstmsg.encode())
+        f = open("ts_pf.txt", "w")
+        while ourId == '' or ourKey == '':
+            time.sleep(0.5)
+        f.write(ourId + '§' + ourKey)
+        f.close()
+
 if type == "OTHER": #Client mode, although it automatically requests 100 nodes from the bootstrap server.
-    while onionaddr == "":
-        time.sleep(0.5)
-    rqstmsg = '§HELLO-IP§' + onionaddr
-    addToMsgsSend(inputaddr,rqstmsg.encode())
-    rqstmsg = '§REQUEST-IDENTITY§'
-    addToMsgsSend(inputaddr,rqstmsg.encode())
-    while ourId == '':
-        time.sleep(0.5)
     rqstmsg = '§REQUEST-CLUSTER-NODES§' + ourId + '§'
     addToMsgsSend(inputaddr,rqstmsg.encode())
     time.sleep(10)
