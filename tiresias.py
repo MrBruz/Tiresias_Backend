@@ -37,7 +37,7 @@ ourKey = ''
 # everthing from chat.py file
 #from chat import *
 
-minimum_message_len=1024
+minimum_message_len=16384
 
 # Network-related variables
 tor_server='127.0.0.1'
@@ -230,7 +230,16 @@ def locateNode(nodeId):
     else:
         return nodeIps[nodeId]
 
-
+def recvall(sock):
+    BUFF_SIZE = 4096 # 4 KiB
+    data = b''
+    while True:
+        part = sock.recv(BUFF_SIZE)
+        data += part
+        if len(part) < BUFF_SIZE:
+            # either 0 or end of data
+            break
+    return data
 
 ### Server class
 # Contains the server socket listener/writer
@@ -278,7 +287,7 @@ class Server():
                                 #time.sleep(0.05)
                                 ready = select.select([conn], [], [], 1.0)
                                 if ready[0]:
-                                        data=conn.recv(minimum_message_len)
+                                        data=recvall(conn)
                                         if len(data)==0: continue
                                         try:
                                             dataDecoded = data.decode()
@@ -305,9 +314,9 @@ class Server():
                                             elif dataDecoded.startswith('§HELLO-IP§') and dataDecoded.count('§') == 2:
                                                     ip = dataDecoded.split('§')[2]
                                                     print('[I] ' + 'A node said hello from ' + ip)
-                                            elif dataDecoded.startswith('§HELLO-SERVER§') and dataDecoded.count('§') == 2:
+                                            elif dataDecoded.startswith('§HELLO-SERVER§') and dataDecoded.count('§') == 3:
                                                     numNodes = int(remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[0])
-                                                    maxNodesSvr = int(remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[2])
+                                                    maxNodesSvr = int(remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[1])
                                             elif dataDecoded.startswith('§DO-YOU-KNOW§') and dataDecoded.count('§') == 2:
                                                     nodeId = remove_prefix(dataDecoded,'§DO-YOU-KNOW§')
                                                     if nodeId in list(nodeIps.keys()):
@@ -343,7 +352,7 @@ class Server():
                                                     print('[I] ' + addr[0],msg)
                                                     addToMsgsRecv(addr[0],msg)
                                             else:
-                                                    print("'[I] ' + <RECEIVED> " + dataDecoded)
+                                                    print("[I] <RECEIVED> " + dataDecoded)
                                             messages.append(dataDecoded)
 
 
@@ -492,7 +501,7 @@ else:
 print("[I] Running in " + type + " mode")
 
 if type == "CLIENT" or type == "CLIENT-REQUEST-NODES" or type == "OTHER":
-    inputaddr = 'ikiooxexu7emqnrwfce5z57mc2lpavo2ar6ibikoz4lftk6426lg22ad.onion'
+    inputaddr = 'f6vd3mwxhvzhqmppsgmnfwzm5km3emjxy2p3ztepmn2fypskc5wqjqyd.onion'
     #inputaddr = input("Enter ip: ")
     if inputaddr == '':
         type = "NONE"
@@ -517,7 +526,7 @@ if type != "SERVER":
         f.close()
         ourId = pfRead.split('§')[0]
         ourKey = pfRead.split('§')[1]
-        rqstmsg = '§HELLO§' + onionaddr + ourId
+        rqstmsg = '§HELLO§' + onionaddr + '§' + ourId
         addToMsgsSend(inputaddr,rqstmsg.encode())
     else:
         rqstmsg = '§HELLO-IP§' + onionaddr
