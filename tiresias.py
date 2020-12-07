@@ -109,7 +109,7 @@ class torStem():
 
         def disconnect(self):
           # Remove hidden service
-          print("Removing hidden service and shutting down torIRC.")
+          print("[I] Removing hidden service and shutting down torIRC.")
 
           self.controller.remove_ephemeral_hidden_service(self.hostname.replace('.onion', ''))
 
@@ -266,7 +266,7 @@ class Server():
                 global foundNodes
                 global ourId
                 global ourKey
-                print("(ServerThread): Received connection from: " + str(addr))
+                print("[I] (ServerThread): Received connection from: " + str(addr))
                 conn.setblocking(0)
                 randomwait=random.randint(1,serverRandomWait)
                 start = time.time()
@@ -286,25 +286,24 @@ class Server():
                                             print("[E] Error decoding packet")
                                         else:
                                             if dataDecoded.startswith('§REQUEST-IDENTITY§') and dataDecoded.count('§') == 2:
-                                                    print(addr[0] + ' is requesting an identity from us.')
+                                                    print('[I] ' + addr[0] + ' is requesting an identity from us.')
                                                     id = genRandomString(16)
                                                     key = genRandomString(32)
                                                     msg = id + '-' + key
                                                     nodes[id] = key
                                                     nodeIps[id] = ip
-                                                    print(nodes)
                                                     addToMsgsSend(ip,msg.encode())
                                             elif dataDecoded.startswith('§HELLO§') and dataDecoded.count('§') == 3:
                                                     ip = dataDecoded.split('§')[2]
                                                     id = dataDecoded.split('§')[3]
-                                                    print('Node, ' + id + ' said hello from ' + ip)
+                                                    print('[I] ' + 'Node, ' + id + ' said hello from ' + ip)
                                                     nodeIps[id] = ip
                                             elif dataDecoded.startswith('§GIVE-SVR-VARS§') and dataDecoded.count('§') == 2:
                                                     msg = '§HELLO-SERVER§' + str(len(nodes) + '§' + maxNodes)
                                                     addToMsgsSend(ip,msg.encode())
                                             elif dataDecoded.startswith('§HELLO-IP§') and dataDecoded.count('§') == 2:
                                                     ip = dataDecoded.split('§')[2]
-                                                    print('A node said hello from ' + ip)
+                                                    print('[I] ' + 'A node said hello from ' + ip)
                                             elif dataDecoded.startswith('§HELLO-SERVER§') and dataDecoded.count('§') == 2:
                                                     numNodes = remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[0]
                                                     maxNodesSvr = remove_prefix(dataDecoded,'§HELLO-SERVER§').split('§')[2]
@@ -318,39 +317,39 @@ class Server():
                                             elif dataDecoded.startswith('§FOUND-THEM§') and dataDecoded.count('§') == 3:
                                                     foundNodes[remove_prefix(dataDecoded,'§FOUND-THEM§').split('§')[1]] = remove_prefix(dataDecoded,'§FOUND-THEM§').split('§')[0]
                                             elif dataDecoded.startswith('§REQUEST-CLUSTER-NODES§') and dataDecoded.count('§') == 3:
-                                                    print(ip + ' is requesting sacrfices to connect to.')
+                                                    print('[I] ' + ip + ' is requesting sacrfices to connect to.')
                                                     clusterDepth = math.floor(len(nodes) / maxNodes)
                                                     randomNodes = getRandomNodes(dataDecoded.split('§')[2],list(nodeIps.keys()).copy(),clusterDepth)
                                                     msg = '§NODES§' + randomNodes
                                                     addToMsgsSend(ip,msg.encode())
                                             elif dataDecoded.startswith('§REQUEST-NODES§') and dataDecoded.count('§') == 3:
-                                                    print(addr[0] + ' is requesting ' + dataDecoded.split('§')[2] + ' nodes from us.')
+                                                    print('[I] ' + addr[0] + ' is requesting ' + dataDecoded.split('§')[2] + ' nodes from us.')
                                                     randomNodes = getRandomNodes(int(dataDecoded.split('§')[2]),list(nodes.keys()).copy())
                                                     msg = '§NODES§' + randomNodes
                                                     addToMsgsSend(addr[0],msg.encode())
                                             elif dataDecoded.count('§') == 0 and dataDecoded.count('-') == 1:
                                                     ourId = dataDecoded.split('-')[0]
                                                     ourKey = dataDecoded.split('-')[1]
-                                                    print("We have received an idenity from " + ip + " id:" + dataDecoded.split('-')[0] + " key:" + dataDecoded.split('-')[1])
+                                                    print('[I] ' + "We have received an idenity from " + ip + " id:" + dataDecoded.split('-')[0] + " key:" + dataDecoded.split('-')[1])
                                             elif dataDecoded.startswith('§NODES§'):
                                                     processed = remove_prefix(dataDecoded,'§NODES§')
-                                                    receivedNodes = processed.split('§§')[0].split('-') + processed.split('§§')[1].split('-')
+                                                    receivedNodes = list(filter(None, processed.split('§§')[0].split('-') + processed.split('§§')[1].split('-')))
                                                     for x in receivedNodes: #X Gon' Give It to Ya
                                                         nodeIps[x.split('§')[0]] = x.split('§')[1]
-                                                    print("We have received " + str(len(receivedNodes)) + " nodes from " + addr[0])
+                                                    print('[I] ' + "We have received " + str(len(receivedNodes)) + " nodes from " + addr[0])
                                             elif dataDecoded.startswith('§MSG§'):
                                                     msg = remove_prefix(dataDecoded,'§MSG§')
-                                                    print(addr[0],msg)
+                                                    print('[I] ' + addr[0],msg)
                                                     addToMsgsRecv(addr[0],msg)
                                             else:
-                                                    print("<RECEIVED> " + dataDecoded)
+                                                    print("'[I] ' + <RECEIVED> " + dataDecoded)
                                             messages.append(dataDecoded)
 
 
                         except:
                                 self.servermsgs.remove(msg)
                                 conn.close()
-                                print("exiting: msgs %d" % len(self.servermsgs))
+                                print('[I] exiting...')
                                 raise
 
         ## Server main thread
@@ -366,7 +365,7 @@ class Server():
                     except Exception as e:
                             print(("[E] %s" % e))
                             print("[E] Check if the control port is activated in /etc/tor/torrc")
-                            print("[E] Try to run as the same user as tor, i.e.   sudo -u debian-tor ./torirc.py -s MY-CHAT  (maybe useful or not) ")
+                            print("[E] Try to run as the same user as tor, i.e.   sudo -u debian-tor ./tiresias.py  (maybe useful or not) ")
                             exit(0)
                 # Start server socket
                 s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -383,9 +382,7 @@ class Server():
                                 conn,addr = s.accept()
                                 cmsg=[]
                                 nick="anon_%d" % random.randint(0,10000)
-                                cmsg.append("Welcome %s, this is %s" % (nick,'server'))
                                 self.servermsgs.append(cmsg)
-                                print(conn,addr)
                                 t = Thread(target=self.serverThread, args=(conn,addr,cmsg,nick))
                                 t.daemon = True
                                 t.start()
@@ -425,10 +422,8 @@ def clientConnectionThread(ServerOnionURL):
                                 # We need to send a message
                                 if messagestosend.get(ServerOnionURL):
                                     if len(messagestosend.get(ServerOnionURL)) > 0:
-                                        print(messagestosend)
                                         print('<SENDING> ' + messagestosend.get(ServerOnionURL)[0].decode())
                                         msgs = messagestosend.get(ServerOnionURL).pop(0)
-                                        print(messagestosend)
                                         if len(msgs)>0:
                                             #m = addpadding(msgs)
                                             lastPacket = time.time()
