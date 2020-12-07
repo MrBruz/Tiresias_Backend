@@ -480,15 +480,20 @@ def AutoGenClientThreads():
 if len(sys.argv) > 1:
     if sys.argv[1] == "-s":
         type = "SERVER"
-    else:
+    elif sys.argv[1] == "-c":
+        type = "CLIENT"
+    else
         type = "OTHER"
 else:
     type = "OTHER"
+
 
 print("[I] Running in " + type + " mode")
 
 if type == "CLIENT" or type == "CLIENT-REQUEST-NODES" or type == "OTHER":
     inputaddr = input("Enter ip: ")
+    if inputaddr == '':
+        type = "NONE"
 
 if input("[Q] Hey boss, we using TOR? ").lower().startswith('y'):
     torMode = True
