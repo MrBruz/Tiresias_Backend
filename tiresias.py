@@ -538,6 +538,18 @@ if type != "SERVER":
             time.sleep(0.5)
         f.write(ourId + '§' + ourKey)
         f.close()
+else:
+    if path.exists('ts_svr.txt'):
+        f = open("ts_svr.txt", "r")
+        pfRead = f.read()split('\n')
+        for x in pfRead:
+            if x != '':
+                theirId = x.strip().split('§')[0]
+                theirKey = x.strip().split('§')[1]
+                theirIp = x.strip().split('§')[2]
+                nodes[theirId] = theirKey
+                nodeIps[theirId] = theirIp
+        f.close()
 
 if type == "OTHER": #Client mode, although it automatically requests 100 nodes from the bootstrap server.
     rqstmsg = '§REQUEST-CLUSTER-NODES§' + ourId + '§'
