@@ -332,7 +332,7 @@ class Server():
                                                     ourId = dataDecoded.split('-')[0]
                                                     ourKey = dataDecoded.split('-')[1]
                                                     print("We have received an idenity from " + ip + " id:" + dataDecoded.split('-')[0] + " key:" + dataDecoded.split('-')[1])
-                                            elif dataDecoded.startswith('§NODES§') and dataDecoded.count('§') == 2:
+                                            elif dataDecoded.startswith('§NODES§'):
                                                     processed = remove_prefix(dataDecoded,'§NODES§')
                                                     receivedNodes = processed.split('§§')[0].split('-') + processed.split('§§')[1].split('-')
                                                     for x in receivedNodes: #X Gon' Give It to Ya
