@@ -94,10 +94,6 @@ class torStem():
                         pass
 
 
-
-
-
-
                 # Add hidden service  ----------------------------------------------- error fixed now in 2016
                 print("[I] Adding hidden service.  Hit CTRL-C to stop server afterwards.  Please wait one minute until hidden service is ready.")
 
@@ -299,7 +295,7 @@ class Server():
                                                     print('[I] ' + 'Node, ' + id + ' said hello from ' + ip)
                                                     nodeIps[id] = ip
                                             elif dataDecoded.startswith('§GIVE-SVR-VARS§') and dataDecoded.count('§') == 2:
-                                                    msg = '§HELLO-SERVER§' + str(len(nodes) + '§' + str(maxNodes))
+                                                    msg = '§HELLO-SERVER§' + str(len(nodes)) + '§' + str(maxNodes))
                                                     addToMsgsSend(ip,msg.encode())
                                             elif dataDecoded.startswith('§HELLO-IP§') and dataDecoded.count('§') == 2:
                                                     ip = dataDecoded.split('§')[2]
@@ -491,7 +487,7 @@ else:
 print("[I] Running in " + type + " mode")
 
 if type == "CLIENT" or type == "CLIENT-REQUEST-NODES" or type == "OTHER":
-    inputaddr = 'fe5lmgoeqeqwdw5qsupr5t6ezxiydpfotrcqd5s4qozpl6iucjuo5qyd.onion'
+    inputaddr = 'b5kyadte3hzi7bj3epgycetakrq7gwgeaqxd7eur2d42zqgktyhvspqd.onion'
     #inputaddr = input("Enter ip: ")
     if inputaddr == '':
         type = "NONE"
@@ -520,6 +516,7 @@ if type == "OTHER": #Client mode, although it automatically requests 100 nodes f
     time.sleep(10)
     rqstmsg = '§GIVE-SVR-VARS§'
     addToMsgsSend(inputaddr,rqstmsg.encode())
+    time.sleep(5)
     gimmeIp = input('What node IP do you wanna find? ')
     print('Here is the IP Boss', locateNode(gimmeIp))
 elif type == "CLIENT": #Client mode, although this tests the message send function. Use this paired with another pc running the server mode to test send/receiving msgs.
