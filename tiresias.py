@@ -263,6 +263,8 @@ class Server():
                 global maxNodesSvr
                 global numNodes
                 global foundNodes
+                global ourId
+                global ourKey
                 print("(ServerThread): Received connection from: " + str(addr))
                 conn.setblocking(0)
                 randomwait=random.randint(1,serverRandomWait)
@@ -326,7 +328,9 @@ class Server():
                                                     msg = '§NODES§' + randomNodes
                                                     addToMsgsSend(addr[0],msg.encode())
                                             elif dataDecoded.count('§') == 0 and dataDecoded.count('-') == 1:
-                                                    print("We have received an idenity from " + addr[0] + " id:" + dataDecoded.split('-')[0] + " key:" + dataDecoded.split('-')[1])
+                                                    ourId = dataDecoded.split('-')[0]
+                                                    ourKey = dataDecoded.split('-')[1]
+                                                    print("We have received an idenity from " + ip + " id:" + dataDecoded.split('-')[0] + " key:" + dataDecoded.split('-')[1])
                                             elif dataDecoded.startswith('§NODES§') and dataDecoded.count('§') == 2:
                                                     processed = remove_prefix(dataDecoded,'§NODES§')
                                                     receivedNodes = processed.split('§§')[0].split('-') + processed.split('§§')[1].split('-')
@@ -506,11 +510,11 @@ thread = Thread(target = Server().serverMain)
 thread.start()
 
 if type == "OTHER": #Client mode, although it automatically requests 100 nodes from the bootstrap server.
-    rqstmsg = '§HELLO§' + onionaddr + '§adjakdkwkskwodod'
+    rqstmsg = '§HELLO-IP§' + onionaddr
     addToMsgsSend(inputaddr,rqstmsg.encode())
     rqstmsg = '§REQUEST-IDENTITY§'
     addToMsgsSend(inputaddr,rqstmsg.encode())
-    rqstmsg = '§REQUEST-CLUSTER-NODES§adjakdkwkskwodod§'
+    rqstmsg = '§REQUEST-CLUSTER-NODES§' + ourId + '§'
     addToMsgsSend(inputaddr,rqstmsg.encode())
 elif type == "CLIENT": #Client mode, although this tests the message send function. Use this paired with another pc running the server mode to test send/receiving msgs.
     rqstmsg = '§MSG§' + 'test message 123...'
