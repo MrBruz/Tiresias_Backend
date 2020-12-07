@@ -24,8 +24,8 @@ rqstamnt = 100
 nodes = {}
 nodeIps = {}
 threads = []
-maxNodes = 256
-maxNodes2 = maxNodes / 4
+maxNodes = 2
+maxNodes2 = 1
 ourId = ''
 #from tkinter import font
 #from tkinter import ttk
@@ -295,7 +295,7 @@ class Server():
                                                     print('[I] ' + 'Node, ' + id + ' said hello from ' + ip)
                                                     nodeIps[id] = ip
                                             elif dataDecoded.startswith('§GIVE-SVR-VARS§') and dataDecoded.count('§') == 2:
-                                                    msg = '§HELLO-SERVER§' + str(len(nodes)) + '§' + str(maxNodes))
+                                                    msg = '§HELLO-SERVER§' + str(len(nodes)) + '§' + str(maxNodes)
                                                     addToMsgsSend(ip,msg.encode())
                                             elif dataDecoded.startswith('§HELLO-IP§') and dataDecoded.count('§') == 2:
                                                     ip = dataDecoded.split('§')[2]
@@ -487,7 +487,7 @@ else:
 print("[I] Running in " + type + " mode")
 
 if type == "CLIENT" or type == "CLIENT-REQUEST-NODES" or type == "OTHER":
-    inputaddr = 'b5kyadte3hzi7bj3epgycetakrq7gwgeaqxd7eur2d42zqgktyhvspqd.onion'
+    inputaddr = 'azjruitmoumcrngokb6teooykhmeqhw4hdufr5afsi2ey5hubvq4s4id.onion'
     #inputaddr = input("Enter ip: ")
     if inputaddr == '':
         type = "NONE"
