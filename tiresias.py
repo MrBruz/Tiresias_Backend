@@ -486,7 +486,7 @@ if len(sys.argv) > 1:
         type = "SERVER"
     elif sys.argv[1] == "-c":
         type = "CLIENT"
-    else
+    else:
         type = "OTHER"
 else:
     type = "OTHER"
