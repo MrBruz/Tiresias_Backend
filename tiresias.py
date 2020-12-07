@@ -6,7 +6,7 @@ __date__ ="$Sep 19, 2020$"
 import curses
 from   threading import Thread
 from   optparse  import OptionParser
-import time,os,subprocess
+import time,os,subprocess,math
 import socket,select,random,sys
 import tempfile
 import base64
@@ -26,6 +26,7 @@ nodeIps = {}
 threads = []
 maxNodes = 256
 maxNodes2 = maxNodes / 4
+ourId = ''
 #from tkinter import font
 #from tkinter import ttk
 
@@ -301,7 +302,7 @@ class Server():
                                             elif dataDecoded.startswith('§GIVE-SVR-VARS§') and dataDecoded.count('§') == 2:
                                                     msg = '§HELLO-SERVER§' + str(len(nodes) + '§' + maxNodes)
                                                     addToMsgsSend(ip,msg.encode())
-                                            elif dataDecoded.startswith('§HELLO-IP§') and dataDecoded.count('§') == 3:
+                                            elif dataDecoded.startswith('§HELLO-IP§') and dataDecoded.count('§') == 2:
                                                     ip = dataDecoded.split('§')[2]
                                                     print('A node said hello from ' + ip)
                                             elif dataDecoded.startswith('§HELLO-SERVER§') and dataDecoded.count('§') == 2:
@@ -510,10 +511,14 @@ thread = Thread(target = Server().serverMain)
 thread.start()
 
 if type == "OTHER": #Client mode, although it automatically requests 100 nodes from the bootstrap server.
+    while onionaddr == "":
+        time.sleep(0.5)
     rqstmsg = '§HELLO-IP§' + onionaddr
     addToMsgsSend(inputaddr,rqstmsg.encode())
     rqstmsg = '§REQUEST-IDENTITY§'
     addToMsgsSend(inputaddr,rqstmsg.encode())
+    while ourId == '':
+        time.sleep(0.5)
     rqstmsg = '§REQUEST-CLUSTER-NODES§' + ourId + '§'
     addToMsgsSend(inputaddr,rqstmsg.encode())
 elif type == "CLIENT": #Client mode, although this tests the message send function. Use this paired with another pc running the server mode to test send/receiving msgs.
