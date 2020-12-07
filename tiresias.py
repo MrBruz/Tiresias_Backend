@@ -292,7 +292,7 @@ class Server():
                                                     nodes[id] = key
                                                     nodeIps[id] = ip
                                                     print(nodes)
-                                                    addToMsgsSend(addr[0],msg.encode())
+                                                    addToMsgsSend(ip,msg.encode())
                                             elif dataDecoded.startswith('§HELLO§') and dataDecoded.count('§') == 3:
                                                     ip = dataDecoded.split('§')[2]
                                                     id = dataDecoded.split('§')[3]
