@@ -165,9 +165,9 @@ def getRandomNodes(id,nodesInternal,nodeDepth):
             counter = 1
             for i in filteredNodes:
                 if counter == 1:
-                    returnNodes = i
+                    returnNodes = i + '§' + nodeIps[i]
                 else:
-                    returnNodes = returnNodes + '-' + i
+                    returnNodes = returnNodes + '-' + i + '§' + nodeIps[i]
                 counter = counter + 1
         else:
             for x in range(maxNodes2):
@@ -181,9 +181,9 @@ def getRandomNodes(id,nodesInternal,nodeDepth):
             counter = 1
             for i in otherNodes:
                 if counter == 1:
-                    returnNodes2 = i
+                    returnNodes2 = i + nodeIps[i]
                 else:
-                    returnNodes2 = returnNodes2 + '-' + i
+                    returnNodes2 = returnNodes2 + '-' + i + '§' + nodeIps[i]
                 counter = counter + 1
         else:
             for x in range(maxNodes):
