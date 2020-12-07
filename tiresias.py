@@ -318,11 +318,11 @@ class Server():
                                             elif dataDecoded.startswith('§FOUND-THEM§') and dataDecoded.count('§') == 3:
                                                     foundNodes[remove_prefix(dataDecoded,'§FOUND-THEM§').split('§')[1]] = remove_prefix(dataDecoded,'§FOUND-THEM§').split('§')[0]
                                             elif dataDecoded.startswith('§REQUEST-CLUSTER-NODES§') and dataDecoded.count('§') == 3:
-                                                    print(addr[0] + ' is requesting sacrfices to connect to.')
+                                                    print(ip + ' is requesting sacrfices to connect to.')
                                                     clusterDepth = math.floor(len(nodes) / maxNodes)
                                                     randomNodes = getRandomNodes(dataDecoded.split('§')[2],list(nodeIps.keys()).copy(),clusterDepth)
                                                     msg = '§NODES§' + randomNodes
-                                                    addToMsgsSend(addr[0],msg.encode())
+                                                    addToMsgsSend(ip,msg.encode())
                                             elif dataDecoded.startswith('§REQUEST-NODES§') and dataDecoded.count('§') == 3:
                                                     print(addr[0] + ' is requesting ' + dataDecoded.split('§')[2] + ' nodes from us.')
                                                     randomNodes = getRandomNodes(int(dataDecoded.split('§')[2]),list(nodes.keys()).copy())
