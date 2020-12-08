@@ -566,6 +566,8 @@ if type != "SERVER":
             time.sleep(0.5)
         f.write(ourId + '§' + ourKey)
         f.close()
+        rqstmsg = '§HELLO§' + onionaddr + '§' + ourId
+        addToMsgsSend(inputaddr,rqstmsg.encode())
 else:
     if path.exists('ts_keys.txt'):
         f = open("ts_keys.txt", "r")
