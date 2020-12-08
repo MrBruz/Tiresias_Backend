@@ -204,8 +204,7 @@ def addToMsgsSend(ip,messages):
     global messagestosend
     if not messagestosend.get(ip) or not len(messagestosend.get(ip)) > 0:
        messagestosend[ip] = []
-    prepareMsg = '§MSG§' + messages
-    messagestosend[ip].append(prepareMsg.encode())
+    messagestosend[ip].append(messages)
 
 
 def addToMsgsRecv(ip,messages):
@@ -386,7 +385,7 @@ class Server():
                                                     debug('[I] ' + "We have received " + str(len(receivedNodes)) + " nodes from " + addr[0])
                                             elif dataDecoded.startswith('§MSG§'):
                                                     msg = remove_prefix(dataDecoded,'§MSG§')
-                                                    debug('[I] ' + addr[0],msg)
+                                                    debug('[I] ' + addr[0] + ' ' + msg)
                                                     addToMsgsRecv(addr[0],msg)
                                             else:
                                                     debug("[I] <RECEIVED> " + dataDecoded)
@@ -608,5 +607,5 @@ addToMsgsSend(inputaddr,rqstmsg.encode())
 while not initialisationDone:
     time.sleep(0.2)
 
-rqstmsg = 'test message 123...'
-addToMsgsSend(locateNode('fElcJWaSLF0vqeTO'),rqstmsg)
+rqstmsg = '§MSG§' + 'test message 123...'
+addToMsgsSend(locateNode('fElcJWaSLF0vqeTO'),rqstmsg.encode())
