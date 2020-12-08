@@ -440,7 +440,7 @@ def clientConnectionThread(ServerOnionURL):
         import socks
         while(True):
 
-                        print(("Trying to connect to %s:%d" % (ServerOnionURL,hidden_service_port)))
+                        print(("[I] Trying to connect to %s:%d" % (ServerOnionURL,hidden_service_port)))
                         ## Connects to TOR via Socks
                         s=socks.socksocket(socket.AF_INET,socket.SOCK_STREAM)
                         if torMode:
@@ -448,7 +448,7 @@ def clientConnectionThread(ServerOnionURL):
                         s.settimeout(100)
                         s.connect((ServerOnionURL,hidden_service_port))
                         s.setblocking(0)
-                        print(("clientConnection: Connected to %s" % ServerOnionURL))
+                        print(("[I] clientConnection: Connected to %s" % ServerOnionURL))
                         randomwait=random.randint(1,clientRandomWait)
                         counter = 1
                         lastPacket = 99999999999
@@ -458,7 +458,7 @@ def clientConnectionThread(ServerOnionURL):
                                 # We need to send a message
                                 if messagestosend.get(ServerOnionURL):
                                     if len(messagestosend.get(ServerOnionURL)) > 0:
-                                        print('<SENDING> ' + messagestosend.get(ServerOnionURL)[0].decode())
+                                        print('[I] <SENDING> ' + messagestosend.get(ServerOnionURL)[0].decode())
                                         msgs = messagestosend.get(ServerOnionURL).pop(0)
                                         if len(msgs)>0:
                                             #m = addpadding(msgs)
@@ -473,7 +473,7 @@ def clientConnectionThread(ServerOnionURL):
                                                 s.sendall(msgs)
                                         randomwait=random.randint(1,clientRandomWait)
                                 counter = counter + 1
-                        print("Timeout (60 seconds since last packet sent.), on connection to " + ServerOnionURL)
+                        print("[I] Timeout (60 seconds since last packet sent.), on connection to " + ServerOnionURL)
                         threads.remove(ServerOnionURL)
                         break
         s.close()
@@ -527,7 +527,7 @@ else:
 print("[I] Running in " + type + " mode")
 
 if type == "CLIENT" or type == "CLIENT-REQUEST-NODES" or type == "OTHER":
-    inputaddr = 'hgyu7y6b47xzqqdi6jlbfkfblsrvcyrst3cb3gruo6htdkdpzkfcehqd.onion'
+    inputaddr = '6hoxnaskwlm4bkh5jtqles2sdjx3sqo4h7lubhmtfidtavchqoemsaad.onion'
     #inputaddr = input("Enter ip: ")
     if inputaddr == '':
         type = "NONE"
@@ -587,15 +587,14 @@ if path.exists('ts_ids.txt'):
             nodeIps[theirId] = theirIp
     f.close()
 
-if type == "OTHER": #Client mode, although it automatically requests 100 nodes from the bootstrap server.
-    rqstmsg = '§REQUEST-CLUSTER-NODES§' + ourId + '§'
-    addToMsgsSend(inputaddr,rqstmsg.encode())
-    time.sleep(10)
-    rqstmsg = '§GIVE-SVR-VARS§'
-    addToMsgsSend(inputaddr,rqstmsg.encode())
-    time.sleep(5)
-    gimmeIp = input('What node IP do you wanna find? ')
-    print('Here is the IP Boss', locateNode(gimmeIp))
-elif type == "CLIENT": #Client mode, although this tests the message send function. Use this paired with another pc running the server mode to test send/receiving msgs.
-    rqstmsg = '§MSG§' + 'test message 123...'
-    addToMsgsSend(inputaddr,rqstmsg.encode())
+rqstmsg = '§REQUEST-CLUSTER-NODES§' + ourId + '§'
+addToMsgsSend(inputaddr,rqstmsg.encode())
+time.sleep(10)
+rqstmsg = '§GIVE-SVR-VARS§'
+addToMsgsSend(inputaddr,rqstmsg.encode())
+time.sleep(5)
+gimmeIp = input('[Q] What node IP do you wanna find? ')
+gotIp = locateNode(gimmeIp)
+print('Here is the IP Boss', gotIp)
+rqstmsg = '§MSG§' + 'test message 123...'
+addToMsgsSend(gotIp,rqstmsg.encode())
