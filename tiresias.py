@@ -241,6 +241,27 @@ def recvall(sock):
             break
     return data
 
+def backupNodesToFile(id,ip,file):
+    if path.exists(file):
+        f = open(file, "r")
+        pfRead = list(filter(None, f.read().split('\n')))
+        f.close()
+        if not any(item.startswith(id + '§') for item in pfRead):
+            f = open(file, "a")
+            f.write(id + '§' + ip + '\n')
+        else:
+            data = ''
+            for x in pfRead:
+                if x.startswith(id + '§'):
+                    data = data + x.replace(x.split(id + '§')[1],ip) + '\n'
+                else:
+                    data = data + x + '\n'
+            f = open(file, "w")
+            f.write(data)
+    else:
+        f = open(file, "a")
+        f.write(id + '§' + ip + '\n')
+
 ### Server class
 # Contains the server socket listener/writer
 
@@ -301,8 +322,8 @@ class Server():
                                                     msg = id + '-' + key
                                                     nodes[id] = key
                                                     nodeIps[id] = ip
-                                                    f = open("ts_svr.txt", "a")
-                                                    f.write(id + '§' + key + '§' + ip + '\n')
+                                                    f = open("ts_keys.txt", "a")
+                                                    f.write(id + '§' + key + '\n')
                                                     f.close()
                                                     addToMsgsSend(ip,msg.encode())
                                             elif dataDecoded.startswith('§HELLO§') and dataDecoded.count('§') == 3:
@@ -311,6 +332,7 @@ class Server():
                                                     id = processedData.split('§')[1]
                                                     print('[I] ' + 'Node, ' + id + ' said hello from ' + ip)
                                                     nodeIps[id] = ip
+                                                    backupNodesToFile(id,ip,'ts_ids.txt')
                                             elif dataDecoded.startswith('§GIVE-SVR-VARS§') and dataDecoded.count('§') == 2:
                                                     msg = '§HELLO-SERVER§' + str(len(nodes)) + '§' + str(maxNodes)
                                                     addToMsgsSend(ip,msg.encode())
@@ -542,17 +564,25 @@ if type != "SERVER":
         f.write(ourId + '§' + ourKey)
         f.close()
 else:
-    if path.exists('ts_svr.txt'):
-        f = open("ts_svr.txt", "r")
+    if path.exists('ts_keys.txt'):
+        f = open("ts_keys.txt", "r")
         pfRead = f.read().split('\n')
         for x in pfRead:
             if x.strip() != '':
                 theirId = x.strip().split('§')[0]
                 theirKey = x.strip().split('§')[1]
-                theirIp = x.strip().split('§')[2]
                 nodes[theirId] = theirKey
-                nodeIps[theirId] = theirIp
         f.close()
+
+if path.exists('ts_ids.txt'):
+    f = open("ts_ids.txt","r")
+    pfRead = f.read().split('\n')
+    for x in pfRead:
+        if x.strip() != '':
+            theirId = x.strip().split('§')[0]
+            theirIp = x.strip().split('§')[1]
+            nodeIps[theirId] = theirIp
+    f.close()
 
 if type == "OTHER": #Client mode, although it automatically requests 100 nodes from the bootstrap server.
     rqstmsg = '§REQUEST-CLUSTER-NODES§' + ourId + '§'
