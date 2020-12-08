@@ -204,7 +204,8 @@ def addToMsgsSend(ip,messages):
     global messagestosend
     if not messagestosend.get(ip) or not len(messagestosend.get(ip)) > 0:
        messagestosend[ip] = []
-    messagestosend[ip].append(messages)
+    prepareMsg = '§MSG§' + messages
+    messagestosend[ip].append(prepareMsg.encode())
 
 
 def addToMsgsRecv(ip,messages):
@@ -607,5 +608,5 @@ addToMsgsSend(inputaddr,rqstmsg.encode())
 while not initialisationDone:
     time.sleep(0.2)
 
-rqstmsg = '§MSG§' + 'test message 123...'
-addToMsgsSend(locateNode('fElcJWaSLF0vqeTO'),rqstmsg.encode())
+rqstmsg = 'test message 123...'
+addToMsgsSend(locateNode('fElcJWaSLF0vqeTO'),rqstmsg)
