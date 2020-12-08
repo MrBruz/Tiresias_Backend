@@ -301,6 +301,9 @@ class Server():
                                                     msg = id + '-' + key
                                                     nodes[id] = key
                                                     nodeIps[id] = ip
+                                                    f = open("ts_pf.txt", "a")
+                                                    f.write(id + '§' + key + '§' + ip + '\n')
+                                                    f.close()
                                                     addToMsgsSend(ip,msg.encode())
                                             elif dataDecoded.startswith('§HELLO§') and dataDecoded.count('§') == 3:
                                                     processedData = remove_prefix(dataDecoded,'§HELLO§')
