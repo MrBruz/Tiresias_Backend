@@ -541,9 +541,9 @@ if type != "SERVER":
 else:
     if path.exists('ts_svr.txt'):
         f = open("ts_svr.txt", "r")
-        pfRead = f.read()split('\n')
+        pfRead = f.read().split('\n')
         for x in pfRead:
-            if x != '':
+            if x.strip() != '':
                 theirId = x.strip().split('§')[0]
                 theirKey = x.strip().split('§')[1]
                 theirIp = x.strip().split('§')[2]
