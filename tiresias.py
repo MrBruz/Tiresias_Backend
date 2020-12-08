@@ -56,10 +56,11 @@ serverRandomWait=1   # Random wait before sending messages
 
 counter = 1
 
+torMode = True
 
 onionaddr = ""
 
-torMode = False
+#torMode = False
 
 ## Tor stem glue class
 
@@ -526,14 +527,16 @@ else:
 print("[I] Running in " + type + " mode")
 
 if type == "CLIENT" or type == "CLIENT-REQUEST-NODES" or type == "OTHER":
-    inputaddr = 'f6vd3mwxhvzhqmppsgmnfwzm5km3emjxy2p3ztepmn2fypskc5wqjqyd.onion'
+    inputaddr = 'hgyu7y6b47xzqqdi6jlbfkfblsrvcyrst3cb3gruo6htdkdpzkfcehqd.onion'
     #inputaddr = input("Enter ip: ")
     if inputaddr == '':
         type = "NONE"
 
+
+'''
 if input("[Q] Hey boss, we using TOR? ").lower().startswith('y'):
     torMode = True
-
+'''
 
 thread = Thread(target = AutoGenClientThreads)
 thread.start()
