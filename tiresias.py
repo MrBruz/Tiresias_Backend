@@ -383,7 +383,10 @@ class Server():
                                                     fernetKey = Fernet.generate_key()
                                                     pub_key = remove_prefix(dataDecoded,'§GIVE-FERNET-KEY§').split(" ")
                                                     pub_key_2 = rsa.PublicKey(n=int(pub_key[0]), e=int(pub_key[1]))
-                                                    rsa.encrypt(message, pub_key_2)
+                                                    msg = b'§HERE-FERNET-KEY§' + rsa.encrypt(message, pub_key_2)
+                                                    addToMsgsSend(ip,msg)
+                                            elif dataDecoded.startswith('§HERE-FERNET-KEY§'):
+                                                    fernetKey = remove_prefix(dataDecoded,'§HERE-FERNET-KEY§')
                                             elif dataDecoded.startswith('§MSG§'):
                                                     msg = remove_prefix(dataDecoded,'§MSG§')
                                                     debug('[I] ' + addr[0] + ' ' + msg)
