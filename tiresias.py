@@ -215,8 +215,7 @@ def addToMsgsSend(ip,messages,id):
         f = Fernet(key)
         msgAppend = '§MSG§'
         data = f.encrypt(messages)
-        messages = msgAppend.encode() + data
-        print(key,base64.b64encode(data))
+        messages = msgAppend.encode() + base64.b64encode(data)
     messagestosend[ip].append(messages)
 
 
@@ -226,10 +225,11 @@ def addToMsgsRecv(ip,messages,id):
     if not messagesreceived.get(ip) or not len(messagesreceived.get(ip)) > 0:
        messagesreceived[ip] = []
     key = fernetKeys[id]
-    print(key,messages)
     f = Fernet(key)
+    print(base64.b64decode(messages))
     messages = f.decrypt(base64.b64decode(messages))
-    messagesreceived[ip].append(messages)
+    print(messages)
+    messagesreceived[ip].append(messages.decode())
 
 def remove_prefix(text, prefix):
     if text.startswith(prefix):
@@ -410,12 +410,12 @@ class Server():
                                                     fernetKeys[id] = fernetKey
                                                     pub_key = remove_prefix(dataDecoded,'§GIVE-FERNET-KEY§').split(" ")
                                                     pub_key_2 = rsa.PublicKey(n=int(pub_key[0]), e=int(pub_key[1]))
-                                                    msgAppend = '§MSG§'
+                                                    msgAppend = '§HERE-FERNET-KEY§'
                                                     msg = msgAppend.encode() + base64.b64encode(rsa.encrypt(fernetKey, pub_key_2))
                                                     addToMsgsSend(ip,msg,"")
                                             elif dataDecoded.startswith('§HERE-FERNET-KEY§'):
                                                     msg = remove_prefix(dataDecoded,'§HERE-FERNET-KEY§').encode()
-                                                    fernetKey = rsa.decrypt(msg, private_key)
+                                                    fernetKey = rsa.decrypt(base64.b64decode(msg), private_key)
                                                     fernetKeys[id] = fernetKey
                                             elif dataDecoded.startswith('§MSG§'):
                                                     msg = remove_prefix(dataDecoded,'§MSG§')
