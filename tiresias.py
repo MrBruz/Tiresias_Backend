@@ -19,6 +19,7 @@ import datetime
 import os.path
 from os import path
 from cryptography.fernet import Fernet
+import base64
 
 messages = []
 messagestosend = {}
@@ -26,6 +27,7 @@ messagesreceived = {}
 rqstamnt = 100
 nodes = {}
 nodeIps = {}
+fernetKeys = {}
 threads = []
 maxNodes = 256
 maxNodes2 = maxNodes / 4
@@ -207,9 +209,14 @@ def addToMsgsSend(ip,messages,id):
     if not messagestosend.get(ip) or not len(messagestosend.get(ip)) > 0:
        messagestosend[ip] = []
     if id != "":
+        while not fernetKeys.get(id) or not len(fernetKeys.get(id)) > 0:
+            time.sleep(0.5)
         key = fernetKeys[id]
         f = Fernet(key)
-        messages = b'§MSG§' + f.encrypt(messages)
+        msgAppend = '§MSG§'
+        data = f.encrypt(messages)
+        messages = msgAppend.encode() + data
+        print(key,base64.b64encode(data))
     messagestosend[ip].append(messages)
 
 
@@ -219,8 +226,9 @@ def addToMsgsRecv(ip,messages,id):
     if not messagesreceived.get(ip) or not len(messagesreceived.get(ip)) > 0:
        messagesreceived[ip] = []
     key = fernetKeys[id]
+    print(key,messages)
     f = Fernet(key)
-    messages = f.decrypt(messages)
+    messages = f.decrypt(base64.b64decode(messages))
     messagesreceived[ip].append(messages)
 
 def remove_prefix(text, prefix):
@@ -254,6 +262,13 @@ def recvall(sock):
             # either 0 or end of data
             break
     return data
+
+def startEncryption(ip):
+    global private_key
+    global public_key
+    public_key, private_key = rsa.newkeys(2048)
+    rqstmsg = '§GIVE-FERNET-KEY§' + str(public_key['n']) + " " + str(public_key['e'])
+    addToMsgsSend(ip,rqstmsg.encode(),"")
 
 def backupNodesToFile(id,ip,file):
     if path.exists(file):
@@ -395,7 +410,8 @@ class Server():
                                                     fernetKeys[id] = fernetKey
                                                     pub_key = remove_prefix(dataDecoded,'§GIVE-FERNET-KEY§').split(" ")
                                                     pub_key_2 = rsa.PublicKey(n=int(pub_key[0]), e=int(pub_key[1]))
-                                                    msg = b'§HERE-FERNET-KEY§' + rsa.encrypt(message, pub_key_2)
+                                                    msgAppend = '§MSG§'
+                                                    msg = msgAppend.encode() + base64.b64encode(rsa.encrypt(fernetKey, pub_key_2))
                                                     addToMsgsSend(ip,msg,"")
                                             elif dataDecoded.startswith('§HERE-FERNET-KEY§'):
                                                     msg = remove_prefix(dataDecoded,'§HERE-FERNET-KEY§').encode()
@@ -555,7 +571,7 @@ else:
 debug("[I] Running in " + type + " mode")
 
 if type == "CLIENT" or type == "CLIENT-REQUEST-NODES" or type == "OTHER":
-    inputaddr = '6hoxnaskwlm4bkh5jtqles2sdjx3sqo4h7lubhmtfidtavchqoemsaad.onion'
+    inputaddr = 'yksxtyd7srenzr2fenpv2webuzrpzvqjahd3zdc6o2253badwiqibpad.onion'
     #inputaddr = input("Enter ip: ")
     if inputaddr == '':
         type = "NONE"
@@ -624,14 +640,6 @@ addToMsgsSend(inputaddr,rqstmsg.encode(),"")
 
 while not initialisationDone:
     time.sleep(0.2)
-
-def startEncryption(ip):
-    global private_key
-    global public_key
-    public_key, private_key = rsa.newkeys(2048)
-    rqstmsg = '§GIVE-FERNET-KEY§' + str(public_key['n']) + " " + str(public_key['e'])
-    addToMsgsSend(ip,rqstmsg.encode())
-
 
 rqstmsg = '§MSG§' + 'test message 123...'
 addToMsgsSend(locateNode('fElcJWaSLF0vqeTO'),rqstmsg.encode())
