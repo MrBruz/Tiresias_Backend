@@ -7,7 +7,7 @@ import curses
 from   threading import Thread
 from   optparse  import OptionParser
 import time,os,subprocess,math
-import socket,select,random,sys
+import socket,select,random,sys, rsa
 import tempfile
 import base64
 import time
@@ -18,6 +18,7 @@ import hashlib
 import datetime
 import os.path
 from os import path
+from cryptography.fernet import Fernet
 
 messages = []
 messagestosend = {}
@@ -368,11 +369,6 @@ class Server():
                                                     randomNodes = getRandomNodes(dataDecoded.split('§')[2],list(nodeIps.keys()).copy(),clusterDepth)
                                                     msg = '§NODES§' + randomNodes
                                                     addToMsgsSend(ip,msg.encode())
-                                            elif dataDecoded.startswith('§REQUEST-NODES§') and dataDecoded.count('§') == 3:
-                                                    debug('[I] ' + addr[0] + ' is requesting ' + dataDecoded.split('§')[2] + ' nodes from us.')
-                                                    randomNodes = getRandomNodes(int(dataDecoded.split('§')[2]),list(nodes.keys()).copy())
-                                                    msg = '§NODES§' + randomNodes
-                                                    addToMsgsSend(addr[0],msg.encode())
                                             elif dataDecoded.count('§') == 0 and dataDecoded.count('-') == 1:
                                                     ourId = dataDecoded.split('-')[0]
                                                     ourKey = dataDecoded.split('-')[1]
@@ -383,6 +379,11 @@ class Server():
                                                     for x in receivedNodes: #X Gon' Give It to Ya
                                                         nodeIps[x.split('§')[0]] = x.split('§')[1]
                                                     debug('[I] ' + "We have received " + str(len(receivedNodes)) + " nodes from " + addr[0])
+                                            elif dataDecoded.startswith('§GIVE-FERNET-KEY§'):
+                                                    fernetKey = Fernet.generate_key()
+                                                    pub_key = remove_prefix(dataDecoded,'§GIVE-FERNET-KEY§').split(" ")
+                                                    pub_key_2 = rsa.PublicKey(n=int(pub_key[0]), e=int(pub_key[1]))
+                                                    rsa.encrypt(message, pub_key_2)
                                             elif dataDecoded.startswith('§MSG§'):
                                                     msg = remove_prefix(dataDecoded,'§MSG§')
                                                     debug('[I] ' + addr[0] + ' ' + msg)
@@ -606,6 +607,12 @@ addToMsgsSend(inputaddr,rqstmsg.encode())
 
 while not initialisationDone:
     time.sleep(0.2)
+
+def startEncryption(ip):
+    public_key, private_key = rsa.newkeys(2048)
+    rqstmsg = '§GIVE-FERNET-KEY§' + str(public_key['n']) + " " + str(public_key['e'])
+    addToMsgsSend(ip,rqstmsg.encode())
+
 
 rqstmsg = '§MSG§' + 'test message 123...'
 addToMsgsSend(locateNode('fElcJWaSLF0vqeTO'),rqstmsg.encode())
