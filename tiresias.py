@@ -201,17 +201,26 @@ def getRandomNodes(id,nodesInternal,nodeDepth):
 
 ## print function
 
-def addToMsgsSend(ip,messages):
+def addToMsgsSend(ip,messages,id):
     global messagestosend
+    global fernetKeys
     if not messagestosend.get(ip) or not len(messagestosend.get(ip)) > 0:
        messagestosend[ip] = []
+    if id != "":
+        key = fernetKeys[id]
+        f = Fernet(key)
+        messages = b'§MSG§' + f.encrypt(messages)
     messagestosend[ip].append(messages)
 
 
-def addToMsgsRecv(ip,messages):
+def addToMsgsRecv(ip,messages,id):
     global messagesreceived
+    global fernetKeys
     if not messagesreceived.get(ip) or not len(messagesreceived.get(ip)) > 0:
        messagesreceived[ip] = []
+    key = fernetKeys[id]
+    f = Fernet(key)
+    messages = f.decrypt(messages)
     messagesreceived[ip].append(messages)
 
 def remove_prefix(text, prefix):
@@ -228,7 +237,7 @@ def locateNode(nodeId):
         nodeDepth = math.floor(int(numNodes) / maxNodesSvr)
         availableNodes = [x for x in list(nodeIps.keys()) if x.startswith(nodeId[:nodeDepth])]
         rqstmsg = '§DO-YOU-KNOW§' + nodeId
-        addToMsgsSend(nodeIps[availableNodes.pop(random.randint(0, len(availableNodes) - 1))],rqstmsg.encode())
+        addToMsgsSend(nodeIps[availableNodes.pop(random.randint(0, len(availableNodes) - 1))],rqstmsg.encode(),"")
         while not foundNodes.get(nodeId):
             time.sleep(1)
         return foundNodes.pop(nodeId)
@@ -307,6 +316,8 @@ class Server():
                 global ourId
                 global ourKey
                 global initialisationDone
+                global private_key
+                global fernetKey
                 debug("[I] (ServerThread): Received connection from: " + str(addr))
                 conn.setblocking(0)
                 randomwait=random.randint(1,serverRandomWait)
@@ -336,7 +347,7 @@ class Server():
                                                     f = open("ts_keys.txt", "a")
                                                     f.write(id + '§' + key + '\n')
                                                     f.close()
-                                                    addToMsgsSend(ip,msg.encode())
+                                                    addToMsgsSend(ip,msg.encode(),"")
                                             elif dataDecoded.startswith('§HELLO§') and dataDecoded.count('§') == 3:
                                                     processedData = remove_prefix(dataDecoded,'§HELLO§')
                                                     ip = processedData.split('§')[0]
@@ -346,7 +357,7 @@ class Server():
                                                     backupNodesToFile(id,ip,'ts_ids.txt')
                                             elif dataDecoded.startswith('§GIVE-SVR-VARS§') and dataDecoded.count('§') == 2:
                                                     msg = '§HELLO-SERVER§' + str(len(nodes)) + '§' + str(maxNodes)
-                                                    addToMsgsSend(ip,msg.encode())
+                                                    addToMsgsSend(ip,msg.encode(),"")
                                             elif dataDecoded.startswith('§HELLO-IP§') and dataDecoded.count('§') == 2:
                                                     ip = dataDecoded.split('§')[2]
                                                     debug('[I] ' + 'A node said hello from ' + ip)
@@ -360,7 +371,7 @@ class Server():
                                                         msg = '§FOUND-THEM§' + nodeIps[nodeId] + '§' + nodeId
                                                     else:
                                                         msg = '§COULDNT-FIND-NODE§'
-                                                    addToMsgsSend(ip,msg.encode())
+                                                    addToMsgsSend(ip,msg.encode(),"")
                                             elif dataDecoded.startswith('§FOUND-THEM§') and dataDecoded.count('§') == 3:
                                                     foundNodes[remove_prefix(dataDecoded,'§FOUND-THEM§').split('§')[1]] = remove_prefix(dataDecoded,'§FOUND-THEM§').split('§')[0]
                                             elif dataDecoded.startswith('§REQUEST-CLUSTER-NODES§') and dataDecoded.count('§') == 3:
@@ -368,7 +379,7 @@ class Server():
                                                     clusterDepth = math.floor(len(nodes) / maxNodes)
                                                     randomNodes = getRandomNodes(dataDecoded.split('§')[2],list(nodeIps.keys()).copy(),clusterDepth)
                                                     msg = '§NODES§' + randomNodes
-                                                    addToMsgsSend(ip,msg.encode())
+                                                    addToMsgsSend(ip,msg.encode(),"")
                                             elif dataDecoded.count('§') == 0 and dataDecoded.count('-') == 1:
                                                     ourId = dataDecoded.split('-')[0]
                                                     ourKey = dataDecoded.split('-')[1]
@@ -381,16 +392,19 @@ class Server():
                                                     debug('[I] ' + "We have received " + str(len(receivedNodes)) + " nodes from " + addr[0])
                                             elif dataDecoded.startswith('§GIVE-FERNET-KEY§'):
                                                     fernetKey = Fernet.generate_key()
+                                                    fernetKeys[id] = fernetKey
                                                     pub_key = remove_prefix(dataDecoded,'§GIVE-FERNET-KEY§').split(" ")
                                                     pub_key_2 = rsa.PublicKey(n=int(pub_key[0]), e=int(pub_key[1]))
                                                     msg = b'§HERE-FERNET-KEY§' + rsa.encrypt(message, pub_key_2)
-                                                    addToMsgsSend(ip,msg)
+                                                    addToMsgsSend(ip,msg,"")
                                             elif dataDecoded.startswith('§HERE-FERNET-KEY§'):
-                                                    fernetKey = remove_prefix(dataDecoded,'§HERE-FERNET-KEY§')
+                                                    msg = remove_prefix(dataDecoded,'§HERE-FERNET-KEY§').encode()
+                                                    fernetKey = rsa.decrypt(msg, private_key)
+                                                    fernetKeys[id] = fernetKey
                                             elif dataDecoded.startswith('§MSG§'):
                                                     msg = remove_prefix(dataDecoded,'§MSG§')
                                                     debug('[I] ' + addr[0] + ' ' + msg)
-                                                    addToMsgsRecv(addr[0],msg)
+                                                    addToMsgsRecv(addr[0],msg,id)
                                             else:
                                                     debug("[I] <RECEIVED> " + dataDecoded)
                                             messages.append(dataDecoded)
@@ -569,19 +583,19 @@ if type != "SERVER":
         ourId = pfRead.split('§')[0]
         ourKey = pfRead.split('§')[1]
         rqstmsg = '§HELLO§' + onionaddr + '§' + ourId
-        addToMsgsSend(inputaddr,rqstmsg.encode())
+        addToMsgsSend(inputaddr,rqstmsg.encode(),"")
     else:
         rqstmsg = '§HELLO-IP§' + onionaddr
-        addToMsgsSend(inputaddr,rqstmsg.encode())
+        addToMsgsSend(inputaddr,rqstmsg.encode(),"")
         rqstmsg = '§REQUEST-IDENTITY§'
-        addToMsgsSend(inputaddr,rqstmsg.encode())
+        addToMsgsSend(inputaddr,rqstmsg.encode(),"")
         f = open("ts_pf.txt", "w")
         while ourId == '' or ourKey == '':
             time.sleep(0.5)
         f.write(ourId + '§' + ourKey)
         f.close()
         rqstmsg = '§HELLO§' + onionaddr + '§' + ourId
-        addToMsgsSend(inputaddr,rqstmsg.encode())
+        addToMsgsSend(inputaddr,rqstmsg.encode(),"")
 else:
     if path.exists('ts_keys.txt'):
         f = open("ts_keys.txt", "r")
@@ -604,14 +618,16 @@ if path.exists('ts_ids.txt'):
     f.close()
 
 rqstmsg = '§REQUEST-CLUSTER-NODES§' + ourId + '§'
-addToMsgsSend(inputaddr,rqstmsg.encode())
+addToMsgsSend(inputaddr,rqstmsg.encode(),"")
 rqstmsg = '§GIVE-SVR-VARS§'
-addToMsgsSend(inputaddr,rqstmsg.encode())
+addToMsgsSend(inputaddr,rqstmsg.encode(),"")
 
 while not initialisationDone:
     time.sleep(0.2)
 
 def startEncryption(ip):
+    global private_key
+    global public_key
     public_key, private_key = rsa.newkeys(2048)
     rqstmsg = '§GIVE-FERNET-KEY§' + str(public_key['n']) + " " + str(public_key['e'])
     addToMsgsSend(ip,rqstmsg.encode())
