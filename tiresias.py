@@ -134,8 +134,6 @@ def genRandomString(chars):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=chars))
 
 
-## print Mode (Server prints to stdout, client do not)
-STDoutprint=False
 
 # Add padding to a message up to minimum_message_len
 def addpadding(message):
@@ -299,8 +297,6 @@ def debug(text):
 # Contains the server socket listener/writer
 
 class Server():
-        # Server roster dictionary: nick->timestamp
-        serverRoster={}
 
         ## List of message queues to send to clients
         servermsgs=[]
@@ -308,19 +304,9 @@ class Server():
         ## channel name
         channelname=""
 
-        ## Eliminate all nicks more than a day old
-        def serverRosterCleanThread(self):
-                while True:
-                        time.sleep(10)
-                        current=time.time()
-                        waittime = random.randint(60*60*10,60*60*36)         # 10 hours to 1.5 days
-                        for b in self.serverRoster:
-                                if current-self.serverRoster[b]>waittime:    # Idle for more than the time limit
-                                        self.serverRoster.pop(b)             # eliminate nick
-                                        waittime = random.randint(60*60*10,60*60*36)
 
         ## Thread attending a single client
-        def serverThread(self,conn,addr,msg,nick):
+        def serverThread(self,conn,addr,msg):
                 global messagestosend
                 global nodes
                 global maxNodes
@@ -437,8 +423,6 @@ class Server():
         ## Server main thread
         def serverMain(self):
                 global torMode
-                global STDOutprint
-                STDOutprint=True
                 if torMode:
                     # Connects to TOR and create hidden service
                     self.ts=torStem()
@@ -455,17 +439,12 @@ class Server():
                 s.bind((hidden_service_interface,hidden_service_port))
                 debug('[I] Server now Active')
                 s.listen(5)
-                # Create server roster cleanup thread
-                t = Thread(target=self.serverRosterCleanThread, args=())
-                t.daemon = True
-                t.start()
                 while True:
                         try:
                                 conn,addr = s.accept()
                                 cmsg=[]
-                                nick="anon_%d" % random.randint(0,10000)
                                 self.servermsgs.append(cmsg)
-                                t = Thread(target=self.serverThread, args=(conn,addr,cmsg,nick))
+                                t = Thread(target=self.serverThread, args=(conn,addr,cmsg))
                                 t.daemon = True
                                 t.start()
                         except KeyboardInterrupt:
@@ -541,8 +520,6 @@ def clientMain(ServerOnionURL):
 # Init/deinit curses
 def Client(ServerOnionURL):
   global stdscr
-  global STDOutprint
-  STDOutprint=False
 
 
   clientMain(ServerOnionURL)
@@ -573,10 +550,7 @@ else:
 debug("[I] Running in " + type + " mode")
 
 if type == "CLIENT" or type == "CLIENT-REQUEST-NODES" or type == "OTHER":
-    inputaddr = 'yksxtyd7srenzr2fenpv2webuzrpzvqjahd3zdc6o2253badwiqibpad.onion'
-    #inputaddr = input("Enter ip: ")
-    if inputaddr == '':
-        type = "NONE"
+    bootstrap = 'yksxtyd7srenzr2fenpv2webuzrpzvqjahd3zdc6o2253badwiqibpad.onion'
 
 
 thread = Thread(target = AutoGenClientThreads)
@@ -596,19 +570,19 @@ if type != "SERVER":
         ourId = pfRead.split('§')[0]
         ourKey = pfRead.split('§')[1]
         rqstmsg = '§HELLO§' + onionaddr + '§' + ourId
-        addToMsgsSend(inputaddr,rqstmsg.encode(),"")
+        addToMsgsSend(bootstrap,rqstmsg.encode(),"")
     else:
         rqstmsg = '§HELLO-IP§' + onionaddr
-        addToMsgsSend(inputaddr,rqstmsg.encode(),"")
+        addToMsgsSend(bootstrap,rqstmsg.encode(),"")
         rqstmsg = '§REQUEST-IDENTITY§'
-        addToMsgsSend(inputaddr,rqstmsg.encode(),"")
+        addToMsgsSend(bootstrap,rqstmsg.encode(),"")
         f = open("ts_pf.txt", "w")
         while ourId == '' or ourKey == '':
             time.sleep(0.5)
         f.write(ourId + '§' + ourKey)
         f.close()
         rqstmsg = '§HELLO§' + onionaddr + '§' + ourId
-        addToMsgsSend(inputaddr,rqstmsg.encode(),"")
+        addToMsgsSend(bootstrap,rqstmsg.encode(),"")
 else:
     if path.exists('ts_keys.txt'):
         f = open("ts_keys.txt", "r")
@@ -631,9 +605,9 @@ if path.exists('ts_ids.txt'):
     f.close()
 
 rqstmsg = '§REQUEST-CLUSTER-NODES§' + ourId + '§'
-addToMsgsSend(inputaddr,rqstmsg.encode(),"")
+addToMsgsSend(bootstrap,rqstmsg.encode(),"")
 rqstmsg = '§GIVE-SVR-VARS§'
-addToMsgsSend(inputaddr,rqstmsg.encode(),"")
+addToMsgsSend(bootstrap,rqstmsg.encode(),"")
 
 def sendMessage(msg, uid):
             global onionaddr
