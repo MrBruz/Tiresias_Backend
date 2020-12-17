@@ -29,6 +29,7 @@ nodes = {}
 nodeIps = {}
 fernetKeys = {}
 threads = []
+nodesSaidHelloToo = []
 maxNodes = 256
 maxNodes2 = maxNodes / 4
 ourId = ''
@@ -61,7 +62,7 @@ serverRandomWait=1   # Random wait before sending messages
 counter = 1
 
 torMode = True
-debugLevel = True
+debugLevel = False
 
 
 onionaddr = ""
@@ -226,9 +227,7 @@ def addToMsgsRecv(ip,messages,id):
        messagesreceived[ip] = []
     key = fernetKeys[id]
     f = Fernet(key)
-    print(base64.b64decode(messages))
     messages = f.decrypt(base64.b64decode(messages))
-    print(messages)
     messagesreceived[ip].append(messages.decode())
 
 def remove_prefix(text, prefix):
@@ -333,6 +332,7 @@ class Server():
                 global initialisationDone
                 global private_key
                 global fernetKey
+                global onionaddr
                 debug("[I] (ServerThread): Received connection from: " + str(addr))
                 conn.setblocking(0)
                 randomwait=random.randint(1,serverRandomWait)
@@ -406,6 +406,8 @@ class Server():
                                                         nodeIps[x.split('§')[0]] = x.split('§')[1]
                                                     debug('[I] ' + "We have received " + str(len(receivedNodes)) + " nodes from " + addr[0])
                                             elif dataDecoded.startswith('§GIVE-FERNET-KEY§'):
+                                                    rqstmsg = '§HELLO§' + onionaddr + '§' + ourId
+                                                    addToMsgsSend(ip,rqstmsg.encode(),"")
                                                     fernetKey = Fernet.generate_key()
                                                     fernetKeys[id] = fernetKey
                                                     pub_key = remove_prefix(dataDecoded,'§GIVE-FERNET-KEY§').split(" ")
@@ -419,8 +421,8 @@ class Server():
                                                     fernetKeys[id] = fernetKey
                                             elif dataDecoded.startswith('§MSG§'):
                                                     msg = remove_prefix(dataDecoded,'§MSG§')
-                                                    debug('[I] ' + addr[0] + ' ' + msg)
-                                                    addToMsgsRecv(addr[0],msg,id)
+                                                    debug('[I] ' + ip + ' ' + msg)
+                                                    addToMsgsRecv(ip,msg,id)
                                             else:
                                                     debug("[I] <RECEIVED> " + dataDecoded)
                                             messages.append(dataDecoded)
@@ -577,11 +579,6 @@ if type == "CLIENT" or type == "CLIENT-REQUEST-NODES" or type == "OTHER":
         type = "NONE"
 
 
-'''
-if input("[Q] Hey boss, we using TOR? ").lower().startswith('y'):
-    torMode = True
-'''
-
 thread = Thread(target = AutoGenClientThreads)
 thread.start()
 
@@ -637,6 +634,18 @@ rqstmsg = '§REQUEST-CLUSTER-NODES§' + ourId + '§'
 addToMsgsSend(inputaddr,rqstmsg.encode(),"")
 rqstmsg = '§GIVE-SVR-VARS§'
 addToMsgsSend(inputaddr,rqstmsg.encode(),"")
+
+def sendMessage(msg, uid):
+            global onionaddr
+            global nodesSaidHelloToo
+            if not uid in nodesSaidHelloToo:
+                rqstmsg = '§HELLO§' + onionaddr + '§' + ourId
+                addToMsgsSend(locateNode(uid),rqstmsg.encode(),"")
+                nodesSaidHelloToo.append(uid)
+            if not fernetKeys.get(uid) or not len(fernetKeys.get(uid)) > 0:
+                startEncryption(locateNode(uid))
+            rqstmsg = msg
+            addToMsgsSend(locateNode(uid),rqstmsg.encode(),uid)
 
 while not initialisationDone:
     time.sleep(0.2)
