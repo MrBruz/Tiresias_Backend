@@ -10,3 +10,12 @@
 #### To get started all you need is a bootstrap server which helps nodes/users find each other. Think of them like trackers for torrents. 
 
 #### Also for developers who just want to test this, is there is bootstrap server pre-built in(Hosted on my spare laptop lol).
+
+
+## Features I need to add later on...
+#### Third Party Trusted Authority for Verifying Identity
+#### Using a server to look after and pass on messages if the user2 in (user1 ---msg> user2) is offline. 
+#### Modifiying the above feature so "friends" can look after and pass on messages
+#### Option for sending files rather than just "text"
+#### Work on having profile pictures
+#### Start working on features that could allow for discord servers and that sorta thing
