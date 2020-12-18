@@ -22,8 +22,8 @@ from cryptography.fernet import Fernet
 import base64
 
 messages = []
-messagestosend = {}
-messagesreceived = {}
+messagesToSend = {}
+messagesReceived = {}
 rqstamnt = 100
 nodes = {}
 nodeIps = {}
@@ -121,10 +121,6 @@ class torStem():
           self.controller.remove_ephemeral_hidden_service(self.hostname.replace('.onion', ''))
 
 
-def connectTimer():
-  threading.Timer(60.0, connectTimer).start()
-  #print("<UPDATING CONNECTION TIME> " + str(round(time.time())))
-  firebase.put('/contacts/' + hashedUid, 'connecttime', round(time.time()))
 
 def chunkstring(string, length):
     return (string[0+i:length+i] for i in range(0, len(string), length))
@@ -133,25 +129,6 @@ def chunkstring(string, length):
 def genRandomString(chars):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=chars))
 
-
-
-# Add padding to a message up to minimum_message_len
-def addpadding(message):
-        if len(message)<minimum_message_len:
-                message+=chr(0)
-                for i in range(minimum_message_len-len(message)):
-                        message+=chr(random.randint(ord('a'),ord('z')))
-        return message.encode()
-
-
-## Return sanitized version of input string
-def sanitize(string):
-        out=""
-        for c in string:
-                if (ord(c)==0): break # char(0) marks start of padding
-                if (ord(c)>=0x20) and (ord(c)<0x80):
-                        out+=c
-        return out
 
 def getRandomNodes(id,nodesInternal,nodeDepth):
         global maxNodes
@@ -203,10 +180,10 @@ def getRandomNodes(id,nodesInternal,nodeDepth):
 ## print function
 
 def addToMsgsSend(ip,messages,id):
-    global messagestosend
+    global messagesToSend
     global fernetKeys
-    if not messagestosend.get(ip) or not len(messagestosend.get(ip)) > 0:
-       messagestosend[ip] = []
+    if not messagesToSend.get(ip) or not len(messagesToSend.get(ip)) > 0:
+       messagesToSend[ip] = []
     if id != "":
         while not fernetKeys.get(id) or not len(fernetKeys.get(id)) > 0:
             time.sleep(0.5)
@@ -215,18 +192,18 @@ def addToMsgsSend(ip,messages,id):
         msgAppend = '§MSG§'
         data = f.encrypt(messages)
         messages = msgAppend.encode() + base64.b64encode(data)
-    messagestosend[ip].append(messages)
+    messagesToSend[ip].append(messages)
 
 
 def addToMsgsRecv(ip,messages,id):
-    global messagesreceived
+    global messagesReceived
     global fernetKeys
-    if not messagesreceived.get(ip) or not len(messagesreceived.get(ip)) > 0:
-       messagesreceived[ip] = []
+    if not messagesReceived.get(ip) or not len(messagesReceived.get(ip)) > 0:
+       messagesReceived[ip] = []
     key = fernetKeys[id]
     f = Fernet(key)
     messages = f.decrypt(base64.b64decode(messages))
-    messagesreceived[ip].append(messages.decode())
+    messagesReceived[ip].append(messages.decode())
 
 def remove_prefix(text, prefix):
     if text.startswith(prefix):
@@ -298,16 +275,9 @@ def debug(text):
 
 class Server():
 
-        ## List of message queues to send to clients
-        servermsgs=[]
-
-        ## channel name
-        channelname=""
-
-
         ## Thread attending a single client
-        def serverThread(self,conn,addr,msg):
-                global messagestosend
+        def serverThread(self,conn,addr):
+                global messagesToSend
                 global nodes
                 global maxNodes
                 global maxNodesSvr
@@ -415,7 +385,6 @@ class Server():
 
 
                         except:
-                                self.servermsgs.remove(msg)
                                 conn.close()
                                 debug('[I] exiting...')
                                 raise
@@ -442,9 +411,7 @@ class Server():
                 while True:
                         try:
                                 conn,addr = s.accept()
-                                cmsg=[]
-                                self.servermsgs.append(cmsg)
-                                t = Thread(target=self.serverThread, args=(conn,addr,cmsg))
+                                t = Thread(target=self.serverThread, args=(conn,addr))
                                 t.daemon = True
                                 t.start()
                         except KeyboardInterrupt:
@@ -459,7 +426,7 @@ class Server():
 def clientConnectionThread(ServerOnionURL):
         global roster
         global threads
-        global messagestosend
+        global messagesToSend
         global torMode
         # Try to load Socksipy
         import socks
@@ -481,12 +448,11 @@ def clientConnectionThread(ServerOnionURL):
                                 time.sleep(1)
                                 ready = select.select([s], [], [], 1.0)
                                 # We need to send a message
-                                if messagestosend.get(ServerOnionURL):
-                                    if len(messagestosend.get(ServerOnionURL)) > 0:
-                                        debug('[I] <SENDING> ' + messagestosend.get(ServerOnionURL)[0].decode())
-                                        msgs = messagestosend.get(ServerOnionURL).pop(0)
+                                if messagesToSend.get(ServerOnionURL):
+                                    if len(messagesToSend.get(ServerOnionURL)) > 0:
+                                        debug('[I] <SENDING> ' + messagesToSend.get(ServerOnionURL)[0].decode())
+                                        msgs = messagesToSend.get(ServerOnionURL).pop(0)
                                         if len(msgs)>0:
-                                            #m = addpadding(msgs)
                                             lastPacket = time.time()
                                             if not os.name == 'nt' and len(msgs) > 1048576: #Patch for linux, 'BlockingIOError: [Errno 11] Resource temporarily unavailable' if file size over 1mb, so this splits it into chunks.
                                                 msgsSplit = list(chunkstring(msgs,1048576))
@@ -506,11 +472,6 @@ def clientConnectionThread(ServerOnionURL):
 
 ## Client main procedure
 def clientMain(ServerOnionURL):
-        global cmdline
-        global inspoint
-        global pagepoint
-        global width,height
-
         ## Message queue to send to server
         clientConnectionThread(ServerOnionURL)
 
@@ -519,18 +480,15 @@ def clientMain(ServerOnionURL):
 # Client
 # Init/deinit curses
 def Client(ServerOnionURL):
-  global stdscr
-
-
   clientMain(ServerOnionURL)
   exit(0)
 
 def AutoGenClientThreads():
     global threads
-    global messagestosend
+    global messagesToSend
     while True:
-        for item in list(messagestosend):
-            if not item in threads and len(messagestosend.get(item)) > 0:
+        for item in list(messagesToSend):
+            if not item in threads and len(messagesToSend.get(item)) > 0:
                 threads.append(item)
                 thread = Thread(target = Client,args=[item])
                 thread.start()
