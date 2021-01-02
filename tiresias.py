@@ -438,7 +438,11 @@ def clientConnectionThread(ServerOnionURL):
                         if torMode:
                             s.setproxy(socks.PROXY_TYPE_SOCKS5,tor_server,tor_server_socks_port)
                         s.settimeout(100)
-                        s.connect((ServerOnionURL,hidden_service_port))
+                        try:
+                            s.connect((ServerOnionURL,hidden_service_port))
+                        except:
+                            debug("[E] Error connecting to " + ServerOnionURL)
+                            break
                         s.setblocking(0)
                         debug(("[I] clientConnection: Connected to %s" % ServerOnionURL))
                         randomwait=random.randint(1,clientRandomWait)
