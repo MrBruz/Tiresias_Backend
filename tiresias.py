@@ -517,7 +517,7 @@ else:
 debug("[I] Running in " + type + " mode")
 
 if type == "CLIENT" or type == "CLIENT-REQUEST-NODES" or type == "OTHER":
-    bootstrap = 'qiybcdwgcijm3utmu5edue6mffjqmagajgif7r4znzkdhqljzy33a4qd.onion'
+    bootstrap = 'tutqu6e24lbs45laj2cfyovdv24fdv5da625wxlx6waeuocg3a75o3id.onion'
 
 
 thread = Thread(target = AutoGenClientThreads)
