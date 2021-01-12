@@ -142,7 +142,7 @@ def getRandomNodes(id,nodesInternal,nodeDepth):
                 filteredNodes.append(nodes)
             else:
                 otherNodes.append(nodes)
-        debug(filteredNodes + " " + otherNodes)
+        debug(str(filteredNodes) + " " + str(otherNodes))
         returnNodes = ""
         if not len(filteredNodes) > maxNodes2:
             counter = 1
@@ -517,7 +517,7 @@ else:
 debug("[I] Running in " + type + " mode")
 
 if type == "CLIENT" or type == "CLIENT-REQUEST-NODES" or type == "OTHER":
-    bootstrap = '5vp2utgu4tbtoxortbalfnsb6ea6wtiffnldaifeg5sghwofwzjsubyd.onion'
+    bootstrap = 'uommu4zujexygdjhvdibnfsfsub3cs2mxgv236mnju7kjiz7kthajwqd.onion'
 
 
 thread = Thread(target = AutoGenClientThreads)
@@ -600,5 +600,8 @@ def broadcastUpdate(uid):
 while not initialisationDone:
     time.sleep(0.2)
 
+#Example send message below 
+'''
 rqstmsg = '§MSG§' + 'test message 123...'
 addToMsgsSend(locateNode('fElcJWaSLF0vqeTO'),rqstmsg.encode())
+'''
