@@ -595,7 +595,7 @@ def broadcastUpdate(uid):
     nodes.remove(uid)
     rqstmsg = '§HELLO§' + nodeIps[uid] + '§' + uid
     for node in nodes:
-        addToMsgsSend(nodeIps[node],rqstmsg)
+        addToMsgsSend(nodeIps[node],rqstmsg,"")
 
 while not initialisationDone:
     time.sleep(0.2)
