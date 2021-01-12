@@ -62,7 +62,7 @@ serverRandomWait=1   # Random wait before sending messages
 counter = 1
 
 torMode = True
-debugLevel = False
+debugLevel = True
 
 
 onionaddr = ""
@@ -142,7 +142,7 @@ def getRandomNodes(id,nodesInternal,nodeDepth):
                 filteredNodes.append(nodes)
             else:
                 otherNodes.append(nodes)
-        debug(filteredNodes,otherNodes)
+        debug(filteredNodes + " " + otherNodes)
         returnNodes = ""
         if not len(filteredNodes) > maxNodes2:
             counter = 1
@@ -289,6 +289,7 @@ class Server():
                 global private_key
                 global fernetKey
                 global onionaddr
+                global type
                 debug("[I] (ServerThread): Received connection from: " + str(addr))
                 conn.setblocking(0)
                 randomwait=random.randint(1,serverRandomWait)
@@ -314,7 +315,11 @@ class Server():
                                                     key = genRandomString(32)
                                                     msg = id + '-' + key
                                                     nodes[id] = key
-                                                    nodeIps[id] = ip
+                                                    if nodeIps.get(ip) != ip and type == "SERVER":
+                                                        nodeIps[id] = ip
+                                                        broadcastUpdate(id):
+                                                    else:
+                                                        nodeIps[id] = ip
                                                     f = open("ts_keys.txt", "a")
                                                     f.write(id + '§' + key + '\n')
                                                     f.close()
@@ -512,7 +517,7 @@ else:
 debug("[I] Running in " + type + " mode")
 
 if type == "CLIENT" or type == "CLIENT-REQUEST-NODES" or type == "OTHER":
-    bootstrap = 'yksxtyd7srenzr2fenpv2webuzrpzvqjahd3zdc6o2253badwiqibpad.onion'
+    bootstrap = '5vp2utgu4tbtoxortbalfnsb6ea6wtiffnldaifeg5sghwofwzjsubyd.onion'
 
 
 thread = Thread(target = AutoGenClientThreads)
@@ -582,6 +587,14 @@ def sendMessage(msg, uid):
                 startEncryption(locateNode(uid))
             rqstmsg = msg
             addToMsgsSend(locateNode(uid),rqstmsg.encode(),uid)
+
+def broadcastUpdate(uid):
+    global nodeIps
+    nodes = list(nodeIps.keys())
+    nodes.remove(uid)
+    rqstmsg = '§HELLO§' + nodeIps[uid] + '§' + uid
+    for node in nodes:
+        addToMsgsSend(nodeIps[node],rqstmsg)
 
 while not initialisationDone:
     time.sleep(0.2)
