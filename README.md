@@ -19,6 +19,12 @@
 ### For a demo and a showcase of how this works, and how to use this in your own projects see,
 ### https://github.com/Footsiefat/Tiresias_mail_client/blob/main/tiresias_mail.py
 
+### -This uses python3 and requires you install PySocks and rsa with Pip aswell as python3-stem ("sudo apt install python3-stem -y" for linux)
+### -Tor must be running as the same user that your running tiresias with
+### -You can toggle the feedback/debug by changing the value of "debugLevel" at the start when first set
+### -The demo had a strange error on unix where the "input" line breaks if you enter a command, I havent found a solution to this yet.
+### -If you find any bugs, suggestions or ideas please let me know in "issues"
+
 ## Features I need to add later on...
 #### Third Party Trusted Authority for Verifying Identity
 #### Using a server to look after and pass on messages if the user2 in (user1 ---msg> user2) is offline. 
