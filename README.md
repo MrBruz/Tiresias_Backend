@@ -11,6 +11,13 @@
 
 #### Also for developers who just want to test this, is there is bootstrap server pre-built in(Hosted on my spare laptop lol).
 
+## Info
+### Tor must be running with the following settings enabled
+#### ControlPort 9051
+#### CookieAuthentication 1
+
+### For a demo and a showcase of how this works, and how to use this in your own projects see,
+### https://github.com/Footsiefat/Tiresias_mail_client/blob/main/tiresias_mail.py
 
 ## Features I need to add later on...
 #### Third Party Trusted Authority for Verifying Identity
