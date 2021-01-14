@@ -1,4 +1,8 @@
 # Tiresias_Backend
+
+## IMPORTANT, WORK ON THIS WILL NOW BE WINDING DOWN SINCE I WILL BE COLABERATING MY EFFORTS WITH HELPING DEVELOP "ONIONR"
+## ALSO THE BOOTSTRAP SERVER(HOSTED ON MY SPARE LAPTOP) IS NOW OFFLINE. FOR TESTING YOU WILL NEED TO HARDCODE YOUR OWN BOOTSTRAP SERVERS IP
+
 #### Repo for my work on the tiresias(backend part) project. Currently unfinished but feel free to have a look.
 ## Current Status: Alpha
 ### Most of core features of this program works but not all features have been added and documentation may be scarse.
